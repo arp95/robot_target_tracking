@@ -6,6 +6,10 @@ Arpit Aggarwal
 Lifeng Zhou
 
 
+### Sample Output
+![Screenshot](outputs/sample.png)
+
+
 ### Instructions for running the code
 
 
