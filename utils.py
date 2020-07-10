@@ -7,17 +7,16 @@ import math
 def extended_kalman_filter(target_xhat_t, target_yhat_t, target_sigma_t, robots_x, robots_y, robots_id, t):
     
     # get z_true using true target motion
-    omega = 100
+    omega = 10
     sigma_z = 0.2
     x_true = math.cos((t-1) / omega) + 3
     y_true = math.sin((t-1) / omega) + 20
     noise = sigma_z * np.random.randn(1000, 1)
-    
+        
     z_true = np.zeros(len(robots_x))
     for index in range(0, len(robots_x)):
-        z_true[index] = np.linalg.norm([[robots_x[index] - x_true], [robots_y[index] - y_true]]) + noise[robots_id[index]]
-        
-    
+        z_true[index] = np.linalg.norm([[robots_x[index] - x_true], [robots_y[index] - y_true]], 2) + noise[robots_id[index]]
+            
     # filter code
     q_matrix = 0.2 * np.eye(2)
     x_matrix = np.array([[target_xhat_t], [target_yhat_t]])
@@ -26,9 +25,9 @@ def extended_kalman_filter(target_xhat_t, target_yhat_t, target_sigma_t, robots_
     z_pred = np.zeros(len(robots_x))
     h_matrix = np.zeros((len(robots_x), 2))
     for index in range(0, len(robots_x)):
-        z_pred[index] = np.linalg.norm([[robots_x[index] - x_matrix[0][0]], [robots_y[index] - x_matrix[1][0]]])
-        h_matrix[index][0] = (-1.0 / z_pred[index]) * (x_matrix[0][0] - robots_x[index])
-        h_matrix[index][1] = (-1.0 / z_pred[index]) * (x_matrix[1][0] - robots_y[index])
+        z_pred[index] = np.linalg.norm([[x_matrix[0][0] - robots_x[index]], [x_matrix[1][0] - robots_y[index]]], 2)
+        h_matrix[index][0] = (-1.0 / z_pred[index]) * (robots_x[index] - x_matrix[0][0])
+        h_matrix[index][1] = (-1.0 / z_pred[index]) * (robots_y[index] - x_matrix[1][0])
         
     res = (z_true - z_pred).T
     r_matrix = sigma_z * sigma_z * np.eye(len(robots_x))
