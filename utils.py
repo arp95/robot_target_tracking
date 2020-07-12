@@ -1,8 +1,76 @@
 # header files needed
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib.patches import Ellipse
+import matplotlib.transforms as transforms
 from scipy.stats import multivariate_normal
 
+
+# reference: https://matplotlib.org/3.1.0/gallery/statistics/confidence_ellipse.html
+def confidence_ellipse(x, y, ax, n_std=3.0, facecolor='none', **kwargs):
+    """
+    Create a plot of the covariance confidence ellipse of `x` and `y`
+
+    Parameters
+    ----------
+    x, y : array_like, shape (n, )
+        Input data.
+
+    ax : matplotlib.axes.Axes
+        The axes object to draw the ellipse into.
+
+    n_std : float
+        The number of standard deviations to determine the ellipse's radiuses.
+
+    Returns
+    -------
+    matplotlib.patches.Ellipse
+
+    Other parameters
+    ----------------
+    kwargs : `~matplotlib.patches.Patch` properties
+    """
+    if x.size != y.size:
+        raise ValueError("x and y must be the same size")
+
+    cov = np.cov(x, y)
+    pearson = cov[0, 1]/np.sqrt(cov[0, 0] * cov[1, 1])
+    # Using a special case to obtain the eigenvalues of this
+    # two-dimensionl dataset.
+    ell_radius_x = np.sqrt(1 + pearson)
+    ell_radius_y = np.sqrt(1 - pearson)
+    ellipse = Ellipse((0, 0),
+        width=ell_radius_x * 2,
+        height=ell_radius_y * 2,
+        facecolor=facecolor,
+        **kwargs)
+
+    # Calculating the stdandard deviation of x from
+    # the squareroot of the variance and multiplying
+    # with the given number of standard deviations.
+    scale_x = np.sqrt(cov[0, 0]) * n_std
+    mean_x = np.mean(x)
+
+    # calculating the stdandard deviation of y ...
+    scale_y = np.sqrt(cov[1, 1]) * n_std
+    mean_y = np.mean(y)
+
+    transf = transforms.Affine2D() \
+        .rotate_deg(45) \
+        .scale(scale_x, scale_y) \
+        .translate(mean_x, mean_y)
+
+    ellipse.set_transform(transf + ax.transData)
+    return ax.add_patch(ellipse)
+
+# reference: https://matplotlib.org/3.1.0/gallery/statistics/confidence_ellipse.html
+def get_correlated_dataset(n, dependency, mu, scale):
+    latent = np.random.randn(n, 2)
+    dependent = latent.dot(dependency)
+    scaled = dependent * scale
+    scaled_with_offset = scaled + mu
+    # return x and y of the new, correlated dataset
+    return scaled_with_offset[:, 0], scaled_with_offset[:, 1]
 
 # code for the filter
 def extended_kalman_filter(target_xhat_t, target_yhat_t, target_sigma_t, robots_x, robots_y, robots_id, t):
@@ -10,8 +78,8 @@ def extended_kalman_filter(target_xhat_t, target_yhat_t, target_sigma_t, robots_
     # get z_true using true target motion
     omega = 10
     sigma_z = 0.2
-    x_true = np.cos((t-1) / omega) + 12
-    y_true = np.sin((t-1) / omega) + 12
+    x_true = 5*np.cos((t-1) / omega) + 12
+    y_true = 5*np.sin((t-1) / omega) + 12
     noise = sigma_z * np.random.randn(1000, 1)
         
     z_true = np.zeros((len(robots_x), 1))
@@ -46,7 +114,7 @@ def plot_gaussian(gauss):
     x, y = np.mgrid[0:25:100j, 0:25:100j]
     z = np.dstack((x, y))
     plt.contourf(x, y, gauss.pdf(z))
-    plt.show()
+    #plt.show()
 
 # save gaussian
 def save_gaussian(gauss, path):
