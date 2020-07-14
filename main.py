@@ -15,20 +15,31 @@ robots_y = [1, 24]
 robots_id = [1, 2]
 x_list = []
 y_list = []
+map_height = 25
+map_width = 25
+scale = map_height, map_width
 
 for t in range(2, 100):
-    target_x_mean, target_y_mean, target_sigma, x_true, y_true = extended_kalman_filter(mean[0], mean[1], var, robots_x, robots_y, robots_id, t)
+    target_x_mean, target_y_mean, var, x_true, y_true = extended_kalman_filter(mean[0], mean[1], var, robots_x, robots_y, robots_id, t)
     mean = np.asarray([target_x_mean, target_y_mean])
-    var = target_sigma
     x_list.append(x_true)
     y_list.append(y_true)
+    x, y = get_correlated_dataset(500, var, (mean[0], mean[1]), scale)
     
+    # plot heatmap
+    heatmap, xedges, yedges = np.histogram2d(x, y, bins=(map_height, map_width))
+    plt.xlim(0, map_height)
+    plt.ylim(0, map_width)
+    extent = [0, map_height, 0, map_width]
+    plt.imshow(heatmap.T, extent=extent, origin='lower')
+    plt.savefig("/home/arpitdec5/Desktop/robot_target_tracking/s1/" + str(t) + ".png")
+    plt.cla()
+    plt.close()
+
     # plot
     fig, ax_nstd = plt.subplots(figsize=(6, 6))
     ax_nstd.axvline(c='grey', lw=1)
     ax_nstd.axhline(c='grey', lw=1)
-    scale = 25, 25
-    x, y = get_correlated_dataset(500, var, (mean[0], mean[1]), scale)
     confidence_ellipse(x, y, ax_nstd, n_std=3, edgecolor='firebrick')
     ax_nstd.scatter(mean[0], mean[1], c='b', s=3)
     ax_nstd.legend()
@@ -39,6 +50,6 @@ for t in range(2, 100):
     plt.scatter([target_x_mean], [target_y_mean], color='b')
     plt.plot([1, target_x_mean], [1, target_y_mean], color='b')
     plt.plot([1, target_x_mean], [24, target_y_mean], color='b')
-    plt.savefig("/home/arpitdec5/Desktop/robot_target_tracking/s/" + str(t) + ".png")
+    plt.savefig("/home/arpitdec5/Desktop/robot_target_tracking/s2/" + str(t) + ".png")
     plt.cla()
     plt.close()
