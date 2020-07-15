@@ -122,3 +122,22 @@ def save_gaussian(gauss, path):
     z = np.dstack((x, y))
     plt.contourf(x, y, gauss.pdf(z))
     plt.savefig(path)
+
+# plot confidence ellipse
+def plot_ellipse(x, y, mean, x_list, y_list, target_x_mean, target_y_mean, path):
+    fig, ax_nstd = plt.subplots(figsize=(6, 6))
+    ax_nstd.axvline(c='grey', lw=1)
+    ax_nstd.axhline(c='grey', lw=1)
+    confidence_ellipse(x, y, ax_nstd, n_std=3, edgecolor='firebrick')
+    ax_nstd.scatter(mean[0], mean[1], c='b', s=3)
+    ax_nstd.legend()
+    plt.xlim(0, 25)
+    plt.ylim(0, 25)
+    plt.scatter(x_list, y_list, color='r')
+    plt.scatter([1, 1], [1, 24], color='b')
+    plt.scatter([target_x_mean], [target_y_mean], color='b')
+    plt.plot([1, target_x_mean], [1, target_y_mean], color='b')
+    plt.plot([1, target_x_mean], [24, target_y_mean], color='b')
+    plt.savefig(path)
+    plt.cla()
+    plt.close()
