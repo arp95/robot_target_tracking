@@ -78,8 +78,8 @@ def extended_kalman_filter(target_xhat_t, target_yhat_t, target_sigma_t, robots_
     # get z_true using true target motion
     omega = 10
     sigma_z = 0.2
-    x_true = 5*np.cos((t-1) / omega) + 12
-    y_true = 5*np.sin((t-1) / omega) + 12
+    x_true = 2*np.cos((t-1) / omega) + 5
+    y_true = 2*np.sin((t-1) / omega) + 7
     noise = sigma_z * np.random.randn(1000, 1)
         
     z_true = np.zeros((len(robots_x), 1))
