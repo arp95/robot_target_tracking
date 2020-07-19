@@ -8,6 +8,7 @@ Lifeng Zhou
 
 ### Sample Output
 ![Screenshot](outputs/sample.png)
+![Screenshot](outputs/sample1.png)
 
 
 ### Instructions for running the code
