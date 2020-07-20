@@ -10,13 +10,15 @@ from utils import *
 
 # user-defined variables
 mean = np.asarray([12, 12])
+x_true = 12
+y_true = 12
 var = [[1, 0], [0, 1]]
 robots_x = [1]
 robots_y = [3]
 robots_id = [1]
 map_height = 20
 map_width = 20
-stepsize_map = 0.1
+stepsize_map = 0.05
 sigma_bayesian_hist = 1.0
 x_mesh, y_mesh = np.meshgrid(np.arange(0, map_height, stepsize_map), np.arange(0, map_width, stepsize_map))
 belief_map = np.ones((int(map_height / stepsize_map), int(map_width / stepsize_map)))
@@ -24,12 +26,11 @@ robot_movement_x = []
 robot_movement_y = []
 
 # plot the heatmap
-def render(t):
+def render(t, x_mesh, y_mesh, belief_map, x_true, y_true, robot_movement_x, robot_movement_y):
     plt.cla()
     plt.contourf(x_mesh, y_mesh, belief_map, cmap=cm.inferno)
-    plt.plot(mean[0], mean[1], 'o', c='b')
+    plt.plot(x_true, y_true, 'o', c='b')
     plt.plot(robot_movement_x, robot_movement_y, 's', c='r')
-    plt.axis('equal')
     plt.savefig("/home/arpitdec5/Desktop/robot_target_tracking/s1/" + str(t) + ".png")
     #plt.show()
 
@@ -44,25 +45,34 @@ def compute_bayesian_histogram(targets_x_mean, targets_y_mean, robot_x, robot_y,
                 bayesian_hist[index1, index2] += 1.0 / (np.sqrt(2 * np.pi * sigma_bayesian_hist**2)) * np.exp(-0.5 / sigma_bayesian_hist**2 * (np.abs(true - estimated)**2))
     return bayesian_hist
 
+# get target estimate
+def get_target_position(t, x_true, y_true):
+    #omega = 50
+    #x_true = np.cos((t-1) / omega) + 11
+    #y_true = np.sin((t-1) / omega) + 12
+    x_true = x_true + 0.05
+    y_true = y_true + 0.05
+    return (x_true, y_true)
 
 # estimate target position after each time step
-for t in range(2, 20):
+for t in range(2, 18):
     
     # add robot position
     robot_movement_x.append(robots_x[0])
     robot_movement_y.append(robots_y[0])
 
-    # get new target estimate
-    target_x_mean, target_y_mean, var, x_true, y_true = extended_kalman_filter(mean[0], mean[1], var, robots_x, robots_y, robots_id, t)
-    mean = np.asarray([target_x_mean, target_y_mean])
+    # update target position
+    #target_x_mean, target_y_mean, var, x_true, y_true = extended_kalman_filter(mean[0], mean[1], var, robots_x, robots_y, robots_id, t)
+    #mean = np.asarray([target_x_mean, target_y_mean])
+    x_true, y_true = get_target_position(t, x_true, y_true)
 
     # compute bayesian histogram and update belief map
-    bayesian_hist = compute_bayesian_histogram([target_x_mean], [target_y_mean], robots_x[0], robots_y[0], int(belief_map.shape[0]), int(belief_map.shape[1]))
+    bayesian_hist = compute_bayesian_histogram([x_true], [y_true], robots_x[0], robots_y[0], int(belief_map.shape[0]), int(belief_map.shape[1]))
     belief_map = belief_map * bayesian_hist
     belief_map = belief_map / belief_map.sum()
     
     # plot map
-    render(t)
+    render(t, x_mesh, y_mesh, belief_map, x_true, y_true, robot_movement_x, robot_movement_y)
 
     # update robot position
     robots_x[0] += 1

@@ -75,10 +75,10 @@ def get_correlated_dataset(n, dependency, mu, scale):
 def extended_kalman_filter(target_xhat_t, target_yhat_t, target_sigma_t, robots_x, robots_y, robots_id, t):
     
     # get z_true using true target motion
-    omega = 10
+    omega = 100
     sigma_z = 0.2
-    x_true = 5*np.cos((t-1) / omega) + 11
-    y_true = 5*np.sin((t-1) / omega) + 12
+    x_true = np.cos((t-1) / omega) + 11
+    y_true = np.sin((t-1) / omega) + 12
     noise = sigma_z * np.random.randn(1000, 1)
         
     z_true = np.zeros((len(robots_x), 1))
