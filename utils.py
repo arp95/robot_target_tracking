@@ -1,9 +1,39 @@
 # header files needed
 import numpy as np
 import matplotlib.pyplot as plt
-#from scipy.stats import multivariate_normal
+import matplotlib.cm as cm
+from scipy.stats import multivariate_normal
 from matplotlib.patches import Ellipse
 
+
+# plot the heatmap
+def render(t, x_mesh, y_mesh, belief_map, x_target, y_target, robot_movement_x, robot_movement_y):
+    plt.cla()
+    plt.contourf(x_mesh, y_mesh, belief_map, cmap=cm.inferno)
+    plt.plot(x_target, y_target, 'o', c='b')
+    plt.plot(robot_movement_x, robot_movement_y, 's', c='r')
+    plt.savefig("/home/arpitdec5/Desktop/robot_target_tracking/s1/" + str(t) + ".png")
+    #plt.show()
+
+# compute bayesian histogram for 'm' targets and given robot position
+def compute_bayesian_histogram(targets_x_mean, targets_y_mean, robot_x, robot_y, belief_map_height, belief_map_width, stepsize_map, sigma_bayesian_hist):
+    bayesian_hist = np.zeros((belief_map_height, belief_map_width))
+    for index in range(0, len(targets_x_mean)):
+        estimated = np.sqrt((targets_x_mean[index] - robot_x)**2 + (targets_y_mean[index] - robot_y)**2)
+        for index1 in range(0, belief_map_height):
+            for index2 in range(0, belief_map_width):
+                true = np.sqrt(((index1*stepsize_map) - robot_x)**2 + ((index2*stepsize_map) - robot_y)**2)
+                bayesian_hist[index1, index2] += 1.0 / (np.sqrt(2 * np.pi * sigma_bayesian_hist**2)) * np.exp(-0.5 / sigma_bayesian_hist**2 * (np.abs(true - estimated)**2))
+    return bayesian_hist
+
+# get target estimate
+def get_target_position(t, x_true, y_true):
+    #omega = 50
+    #x_true = np.cos((t-1) / omega) + 11
+    #y_true = np.sin((t-1) / omega) + 12
+    x_true = x_true + 0.05
+    y_true = y_true + 0.05
+    return (x_true, y_true)
 
 # reference: https://matplotlib.org/3.1.0/gallery/statistics/confidence_ellipse.html
 def confidence_ellipse(x, y, ax, n_std=3.0, facecolor='none', **kwargs):
