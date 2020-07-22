@@ -4,13 +4,15 @@ import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 from scipy.stats import multivariate_normal
 from matplotlib.patches import Ellipse
+import matplotlib.transforms as transforms
 
 
 # plot the heatmap
-def render(t, x_mesh, y_mesh, belief_map, x_target, y_target, robot_movement_x, robot_movement_y):
+def render(t, x_mesh, y_mesh, belief_map, x_target, y_target, target_x_mean, target_y_mean, robot_movement_x, robot_movement_y):
     plt.cla()
     plt.contourf(x_mesh, y_mesh, belief_map, cmap=cm.inferno)
     plt.plot(x_target, y_target, 'o', c='b')
+    plt.plot(target_x_mean, target_y_mean, 'o', c='r')
     plt.plot(robot_movement_x, robot_movement_y, 's', c='r')
     plt.savefig("/home/arpitdec5/Desktop/robot_target_tracking/s1/" + str(t) + ".png")
     #plt.show()
@@ -28,11 +30,11 @@ def compute_bayesian_histogram(targets_x_mean, targets_y_mean, robot_x, robot_y,
 
 # get target estimate
 def get_target_position(t, x_true, y_true):
-    #omega = 50
-    #x_true = np.cos((t-1) / omega) + 11
-    #y_true = np.sin((t-1) / omega) + 12
-    x_true = x_true + 0.05
-    y_true = y_true + 0.05
+    omega = 100
+    x_true = 3*np.cos((t-1) / omega) + 11
+    y_true = 3*np.sin((t-1) / omega) + 12
+    #x_true = x_true + 0.05
+    #y_true = y_true + 0.05
     return (x_true, y_true)
 
 # reference: https://matplotlib.org/3.1.0/gallery/statistics/confidence_ellipse.html
@@ -105,10 +107,10 @@ def get_correlated_dataset(n, dependency, mu, scale):
 def extended_kalman_filter(target_xhat_t, target_yhat_t, target_sigma_t, robots_x, robots_y, robots_id, t):
     
     # get z_true using true target motion
-    omega = 100
+    omega = 50
     sigma_z = 0.2
-    x_true = np.cos((t-1) / omega) + 11
-    y_true = np.sin((t-1) / omega) + 12
+    x_true = 2*np.cos((t-1) / omega) + 10
+    y_true = 2*np.sin((t-1) / omega) + 12
     noise = sigma_z * np.random.randn(1000, 1)
         
     z_true = np.zeros((len(robots_x), 1))
@@ -153,20 +155,21 @@ def save_gaussian(gauss, path):
     plt.savefig(path)
 
 # plot confidence ellipse
-def plot_ellipse(x, y, mean, x_list, y_list, target_x_mean, target_y_mean, path):
+def plot_ellipse(x, y, mean, x_list, y_list, target_x_mean, target_y_mean, path, robot_x, robot_y):
     fig, ax_nstd = plt.subplots(figsize=(6, 6))
     ax_nstd.axvline(c='grey', lw=1)
     ax_nstd.axhline(c='grey', lw=1)
-    confidence_ellipse(x, y, ax_nstd, n_std=3, edgecolor='firebrick')
-    ax_nstd.scatter(mean[0], mean[1], c='b', s=3)
+    confidence_ellipse(x, y, ax_nstd, n_std=1, edgecolor='firebrick')
+    ax_nstd.scatter(mean[0], mean[1], c='b', s=1)
     ax_nstd.legend()
-    plt.xlim(0, 25)
-    plt.ylim(0, 25)
+    plt.xlim(0, 20)
+    plt.ylim(0, 20)
     plt.scatter(x_list, y_list, color='r')
-    plt.scatter([1, 1], [1, 24], color='b')
     plt.scatter([target_x_mean], [target_y_mean], color='b')
-    plt.plot([1, target_x_mean], [1, target_y_mean], color='b')
-    plt.plot([1, target_x_mean], [24, target_y_mean], color='b')
+    plt.plot([robot_x, target_x_mean], [robot_y, target_y_mean], color='b')
+    #plt.plot([1, target_x_mean], [14, target_y_mean], color='b')
+    #plt.plot(robot_x, robot_y, color='b')
+    #plt.show()
     plt.savefig(path)
     plt.cla()
     plt.close()
