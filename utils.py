@@ -30,7 +30,7 @@ def compute_bayesian_histogram(targets_x_mean, targets_y_mean, robot_x, robot_y,
 
 # get target estimate
 def get_target_position(t, x_true, y_true):
-    omega = 100
+    omega = 50
     x_true = 3*np.cos((t-1) / omega) + 11
     y_true = 3*np.sin((t-1) / omega) + 12
     #x_true = x_true + 0.05

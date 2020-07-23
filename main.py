@@ -7,6 +7,20 @@ from matplotlib.patches import Ellipse
 from utils import *
 
 
+#def get_robot_pos(prev_robot, prev_target, curr_target):
+#    
+#    fpoint = (2, 2)
+#    val = 1000000
+#    for index1 in range(1, 20):
+#        for index2 in range(1, 20):
+#            if(index1 != curr_target[0]):
+#                point = (index1, index2)
+#                m1 = (prev_robot[1] - prev_target[1]) / (prev_robot[0] - prev_target[0])
+#                m2 = (index2 - curr_target[1]) / (index1 - curr_target[0])
+#                if((m1 * m2 + 1) < 1e-4):
+#                    fpoint = point
+#    return fpoint
+
 # user-defined variables
 mean = np.asarray([12, 12])
 x_true = 12
@@ -33,6 +47,8 @@ true_target_x.append(x_true)
 true_target_y.append(y_true)
 robot_movement_x.append(robots_x[0])
 robot_movement_y.append(robots_y[0])
+prev_target_x = 12
+prev_target_y = 12
 
 # plotting for t=1
 #bayesian_hist = compute_bayesian_histogram([x_true], [y_true], robots_x[0], robots_y[0], int(belief_map.shape[0]), int(belief_map.shape[1]), stepsize_map, sigma_bayesian_hist)
@@ -45,9 +61,6 @@ belief_map = prob_ekf
 
 
 # estimate target position after each time step
-flag1 = True
-flag2 = False
-flag3 = False
 for t in range(2, 160):
 
     # update target position
@@ -78,16 +91,46 @@ for t in range(2, 160):
     plot_ellipse(x, y, mean, true_target_x, true_target_y, target_x_mean, target_y_mean, "/home/arpitdec5/Desktop/robot_target_tracking/s2/" + str(t) + ".png", robots_x[0], robots_y[0])
 
     # update robot position
-    if(t < 50):
-        if(t % 3 == 0 and robots_y[0] <= 19):
-            robots_y[0] += 1
-    elif(t>=50 and t < 100):
-        if(t % 3 == 0 and robots_y[0] >= 1 and robots_x[0] <= 19):
-            robots_y[0] -= 1
+    #(robots_x[0], robots_y[0]) = get_robot_pos((robots_x[0], robots_y[0]), (prev_target_x, prev_target_y), (target_x_mean, target_y_mean))
+    #prev_target_x = target_x_mean
+    #prev_target_y = target_y_mean
+
+    if(t <= 10):
+        if(t%2 == 0 and robots_x[0] <= 19 and robots_y[0] <= 18):
             robots_x[0] += 1
-    elif(t >= 100):
-        if(t % 3 == 0):
+            robots_y[0] += 0.5
+    if(t > 10 and t <= 30 and robots_y[0] <= 18):
+        if(t%3 == 0):
             robots_y[0] += 1
+            robots_x[0] -= 0.5
+    if(t > 30 and t <= 40 and robots_x[0] <= 19 and robots_y[0] <= 18):
+        if(t%2 == 0):
+            robots_x[0] += 1
+            robots_y[0] += 0.5
+    if(t > 40 and t <= 60 and robots_y[0] <= 18):
+        if(t%3 == 0):
+            robots_y[0] += 1
+            robots_x[0] -= 0.5
+    if(t > 60 and t <= 70 and robots_x[0] <= 19 and robots_y[0] <= 18):
+        if(t%2 == 0):
+            robots_x[0] += 1
+            robots_y[0] += 0.5
+    if(t > 70 and t <= 90 and robots_y[0] <= 18 and robots_x[0] >= 1):
+        if(t%3 == 0):
+            robots_y[0] += 1
+            robots_x[0] -= 0.5
+    if(t > 90 and t <= 100 and robots_x[0] <= 19):
+        if(t%2 == 0):
+            robots_x[0] += 1
+            robots_y[0] -= 0.5
+    if(t > 100 and t <= 120 and robots_x[0] <= 19):
+        if(t%3 == 0):
+            robots_y[0] -= 1
+            robots_x[0] += 0.5
+    if(t > 120 and t <= 150 and robots_x[0] >= 1):
+        if(t%3 == 0):
+            robots_y[0] -= 1
+            robots_x[0] -= 1
 
     #if(t%5 == 0 and robots_x[0] >= 10 and robots_x[0] > 0):
     #    robots_x[0] -= 1
