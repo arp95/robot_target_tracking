@@ -8,20 +8,20 @@ import matplotlib.transforms as transforms
 
 
 # plot the heatmap
-def render(t, x_mesh, y_mesh, belief_map, x_target, y_target, target_x_mean, target_y_mean, robot_movement_x, robot_movement_y):
+def render(t, x_mesh, y_mesh, belief_map, x_target, y_target, robot_movement_x, robot_movement_y):
     plt.cla()
     plt.contourf(x_mesh, y_mesh, belief_map, cmap=cm.inferno)
     plt.plot(x_target, y_target, 'o', c='b')
-    plt.plot(target_x_mean, target_y_mean, 'o', c='r')
     plt.plot(robot_movement_x, robot_movement_y, 's', c='r')
     plt.savefig("/home/arpitdec5/Desktop/robot_target_tracking/s1/" + str(t) + ".png")
     #plt.show()
 
 # compute bayesian histogram for 'm' targets and given robot position
-def compute_bayesian_histogram(targets_x_mean, targets_y_mean, robot_x, robot_y, belief_map_height, belief_map_width, stepsize_map, sigma_bayesian_hist):
+def compute_bayesian_histogram(targets_x_true, targets_y_true, robot_x, robot_y, belief_map_height, belief_map_width, stepsize_map, sigma_bayesian_hist):
+    noise = sigma_bayesian_hist * np.random.randn(1, 1)
     bayesian_hist = np.zeros((belief_map_height, belief_map_width))
-    for index in range(0, len(targets_x_mean)):
-        estimated = np.sqrt((targets_x_mean[index] - robot_x)**2 + (targets_y_mean[index] - robot_y)**2)
+    for index in range(0, len(targets_x_true)):
+        estimated = np.sqrt((targets_x_true[index] - robot_x)**2 + (targets_y_true[index] - robot_y)**2) + noise[0][0]
         for index1 in range(0, belief_map_height):
             for index2 in range(0, belief_map_width):
                 true = np.sqrt(((index1*stepsize_map) - robot_x)**2 + ((index2*stepsize_map) - robot_y)**2)
@@ -31,10 +31,8 @@ def compute_bayesian_histogram(targets_x_mean, targets_y_mean, robot_x, robot_y,
 # get target estimate
 def get_target_position(t, x_true, y_true):
     omega = 50
-    x_true = 3*np.cos((t-1) / omega) + 11
-    y_true = 3*np.sin((t-1) / omega) + 12
-    #x_true = x_true + 0.05
-    #y_true = y_true + 0.05
+    x_true = 2*np.cos((t-1) / omega) + 10
+    y_true = 2*np.sin((t-1) / omega) + 12
     return (x_true, y_true)
 
 # reference: https://matplotlib.org/3.1.0/gallery/statistics/confidence_ellipse.html
