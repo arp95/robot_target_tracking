@@ -5,6 +5,8 @@ import matplotlib.cm as cm
 from scipy.stats import multivariate_normal
 from matplotlib.patches import Ellipse
 import matplotlib.transforms as transforms
+from math import pi, cos, sin
+from random import random
 
 
 # plot the heatmap
@@ -106,7 +108,7 @@ def extended_kalman_filter(target_xhat_t, target_yhat_t, target_sigma_t, robots_
     
     # get z_true using true target motion
     omega = 50
-    sigma_z = 0.2
+    sigma_z = 1.0
     x_true = 2*np.cos((t-1) / omega) + 10
     y_true = 2*np.sin((t-1) / omega) + 12
     noise = sigma_z * np.random.randn(1000, 1)
@@ -153,7 +155,7 @@ def save_gaussian(gauss, path):
     plt.savefig(path)
 
 # plot confidence ellipse
-def plot_ellipse(x, y, mean, x_list, y_list, target_x_mean, target_y_mean, path, robot_x, robot_y):
+def plot_ellipse(x, y, mean, x_list, y_list, target_x_mean, target_y_mean, path, robot_x, robot_y, robot_movement_x, robot_movement_y):
     fig, ax_nstd = plt.subplots(figsize=(6, 6))
     ax_nstd.axvline(c='grey', lw=1)
     ax_nstd.axhline(c='grey', lw=1)
@@ -163,11 +165,37 @@ def plot_ellipse(x, y, mean, x_list, y_list, target_x_mean, target_y_mean, path,
     plt.xlim(0, 20)
     plt.ylim(0, 20)
     plt.scatter(x_list, y_list, color='r')
+    plt.scatter(robot_movement_x, robot_movement_y, color='b')
     plt.scatter([target_x_mean], [target_y_mean], color='b')
     plt.plot([robot_x, target_x_mean], [robot_y, target_y_mean], color='b')
-    #plt.plot([1, target_x_mean], [14, target_y_mean], color='b')
-    #plt.plot(robot_x, robot_y, color='b')
-    #plt.show()
     plt.savefig(path)
     plt.cla()
     plt.close()
+
+def points_in_circle_np(radius, x0=0, y0=0):
+    thetas = [0.0, 30.0, 60.0, 90.0, 120.0, 150.0, 180.0, 210.0, 240.0, 270.0, 300.0, 330.0]
+    points = []
+    for theta in thetas:
+        theta = (theta * pi) / 180.0
+        points.append((x0 + cos(theta) * radius, y0 + sin(theta) * radius))
+    return points
+
+# choose correct action
+def update_robot_pos(robot_x, robot_y, target_x, target_y, prev_target_x, prev_target_y, radius, map_height, map_width):
+    action_set = points_in_circle_np(radius, robot_x, robot_y)
+    alpha_opt = 10000000
+    dist_opt = 10000000
+    best_action = (0, 0)
+    for action in action_set:
+        curr_robot_x = action[0]
+        curr_robot_y = action[1]
+        if(curr_robot_x >= 1 and curr_robot_x < map_height and curr_robot_y >= 1 and curr_robot_y < map_width):
+            m1 = (prev_target_y - robot_y) / (prev_target_x - robot_x + 1e-8)
+            m2 = (target_y - curr_robot_y) / (target_x - curr_robot_x + 1e-8)
+            d1 = np.sqrt((target_x - robot_x)**2 + (target_y - robot_y)**2)
+            d2 = np.sqrt((target_x - curr_robot_x)**2 + (target_y - curr_robot_y)**2)
+            if(np.abs((m1 * m2) + 1) < alpha_opt):
+                alpha_opt = np.abs((m1 * m2) + 1)
+                dist_opt = np.abs((d1 / d2) - 1)
+                best_action = action
+    return (best_action[0], best_action[1])
