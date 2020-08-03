@@ -140,7 +140,7 @@ def extended_kalman_filter(target_xhat_t, target_yhat_t, target_sigma_t, robots_
         (target_xhat_tplus1, target_yhat_tplus1, sigma_matrix_tplus1, x_true, y_true): the predicted target position      
     """
     # get z_true using true target motion
-    omega = 50
+    omega = 33
     sigma_z = 1.0
     x_true = 2*np.cos((t-1) / omega) + 10
     y_true = 2*np.sin((t-1) / omega) + 12
