@@ -68,7 +68,7 @@ def get_target_position(t, x_true, y_true):
         Outputs:
         (x_true, y_true): the target position at next time step      
     """
-    omega = 50
+    omega = 33
     x_true = 2*np.cos((t-1) / omega) + 10
     y_true = 2*np.sin((t-1) / omega) + 12
     return (x_true, y_true)
