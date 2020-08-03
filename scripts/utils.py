@@ -11,6 +11,17 @@ from random import random
 
 # plot the heatmap
 def render(t, x_mesh, y_mesh, belief_map, x_target, y_target, robot_movement_x, robot_movement_y):
+    """
+        Inputs:
+        t: time step
+        x_mesh: the x-coordinates
+        y_mesh: the y-coordinates
+        belief_map: the map containing the probabilities
+        x_target: the target x-coordinate
+        y_target: the target y-coordinate
+        robot_movement_x: the list of robot paths x-coordinates
+        robot_movement_y: the list of robot paths y-coordinates
+    """
     plt.cla()
     plt.contourf(x_mesh, y_mesh, belief_map, cmap=cm.inferno)
     plt.plot(x_target, y_target, 'o', c='b')
@@ -18,8 +29,23 @@ def render(t, x_mesh, y_mesh, belief_map, x_target, y_target, robot_movement_x, 
     plt.savefig("/home/arpitdec5/Desktop/robot_target_tracking/s1/" + str(t) + ".png")
     #plt.show()
 
+
 # compute bayesian histogram for 'm' targets and given robot position
-def compute_bayesian_histogram(targets_x_true, targets_y_true, robot_x, robot_y, belief_map_height, belief_map_width, stepsize_map, sigma_bayesian_hist):
+def compute_bayesian_histogram(targets_x_true, targets_y_true, robot_x, robot_y, belief_map_height, belief_map_width, stepsize_map, sigma_bayesian_hist=1.0):
+    """
+        Inputs:
+        targets_x_true: the true position of target x-coordinate
+        targets_y_true: the true position of target y-coordinate
+        robot_x: the position of robot x-coordinate
+        robot_y: the position of robot y-coordinate 
+        belief_map_height: the environment dimensions, height
+        belief_map_width: the environment dimensions, width
+        stepsize_map: equal to 0.1
+        sigma_bayesian_hist: equal to 1
+
+        Outputs:
+        bayesian_hist: the belief map of dimensions (belief_map_height, belief_map_width) containing probabilities      
+    """
     noise = sigma_bayesian_hist * np.random.randn(1, 1)
     bayesian_hist = np.zeros((belief_map_height, belief_map_width))
     for index in range(0, len(targets_x_true)):
@@ -30,36 +56,30 @@ def compute_bayesian_histogram(targets_x_true, targets_y_true, robot_x, robot_y,
                 bayesian_hist[index1, index2] += 1.0 / (np.sqrt(2 * np.pi * sigma_bayesian_hist**2)) * np.exp(-0.5 / sigma_bayesian_hist**2 * (np.abs(true - estimated)**2))
     return bayesian_hist
 
+
 # get target estimate
 def get_target_position(t, x_true, y_true):
+    """
+        Inputs:
+        t: time step
+        x_true: the true position of target x-coordinate
+        y_true: the true position of target y-coordinate
+
+        Outputs:
+        (x_true, y_true): the target position at next time step      
+    """
     omega = 50
     x_true = 2*np.cos((t-1) / omega) + 10
     y_true = 2*np.sin((t-1) / omega) + 12
     return (x_true, y_true)
 
+
 # reference: https://matplotlib.org/3.1.0/gallery/statistics/confidence_ellipse.html
 def confidence_ellipse(x, y, ax, n_std=3.0, facecolor='none', **kwargs):
     """
-    Create a plot of the covariance confidence ellipse of `x` and `y`
-
-    Parameters
-    ----------
-    x, y : array_like, shape (n, )
-        Input data.
-
-    ax : matplotlib.axes.Axes
-        The axes object to draw the ellipse into.
-
-    n_std : float
-        The number of standard deviations to determine the ellipse's radiuses.
-
-    Returns
-    -------
-    matplotlib.patches.Ellipse
-
-    Other parameters
-    ----------------
-    kwargs : `~matplotlib.patches.Patch` properties
+        Inputs:
+        x: the x-coordinate datapoints
+        y: the y-coordinate datapoints
     """
     if x.size != y.size:
         raise ValueError("x and y must be the same size")
@@ -94,6 +114,7 @@ def confidence_ellipse(x, y, ax, n_std=3.0, facecolor='none', **kwargs):
     ellipse.set_transform(transf + ax.transData)
     return ax.add_patch(ellipse)
 
+
 # reference: https://matplotlib.org/3.1.0/gallery/statistics/confidence_ellipse.html
 def get_correlated_dataset(n, dependency, mu, scale):
     latent = np.random.randn(n, 2)
@@ -103,9 +124,21 @@ def get_correlated_dataset(n, dependency, mu, scale):
     # return x and y of the new, correlated dataset
     return scaled_with_offset[:, 0], scaled_with_offset[:, 1]
 
+
 # code for the filter
 def extended_kalman_filter(target_xhat_t, target_yhat_t, target_sigma_t, robots_x, robots_y, robots_id, t):
-    
+    """
+        Inputs:
+        target_xhat_t: the estimated target position x-coordinate
+        target_yhat_t: the estimated target position y-coordinate
+        robots_x: the position of robots x-coordinate
+        robots_y: the position of robots y-coordinate
+        robots_id: the ids of robots
+        t: the time step
+
+        Outputs:
+        (target_xhat_tplus1, target_yhat_tplus1, sigma_matrix_tplus1, x_true, y_true): the predicted target position      
+    """
     # get z_true using true target motion
     omega = 50
     sigma_z = 1.0
@@ -140,6 +173,7 @@ def extended_kalman_filter(target_xhat_t, target_yhat_t, target_sigma_t, robots_
     target_yhat_tplus1 = x_matrix_tplus1[1][0]
     return (target_xhat_tplus1, target_yhat_tplus1, sigma_matrix_tplus1, x_true, y_true)
 
+
 # plot gaussian
 def plot_gaussian(gauss):
     x, y = np.mgrid[0:25:100j, 0:25:100j]
@@ -147,12 +181,14 @@ def plot_gaussian(gauss):
     plt.contourf(x, y, gauss.pdf(z))
     #plt.show()
 
+
 # save gaussian
 def save_gaussian(gauss, path):
     x, y = np.mgrid[0:25:100j, 0:25:100j]
     z = np.dstack((x, y))
     plt.contourf(x, y, gauss.pdf(z))
     plt.savefig(path)
+
 
 # plot confidence ellipse
 def plot_ellipse(x, y, mean, x_list, y_list, target_x_mean, target_y_mean, path, robot_x, robot_y, robot_movement_x, robot_movement_y):
@@ -172,7 +208,17 @@ def plot_ellipse(x, y, mean, x_list, y_list, target_x_mean, target_y_mean, path,
     plt.cla()
     plt.close()
 
+
 def points_in_circle_np(radius, x0=0, y0=0):
+    """
+        Inputs:
+        radius: the radius of the circular region around the current robot position
+        x0: the x-coordinate of the robot position
+        y0: the y-coordinate of the robot position
+
+        Outputs: 
+        points: the action set to be used for deciding the robot trajectory      
+    """
     thetas = [0.0, 30.0, 60.0, 90.0, 120.0, 150.0, 180.0, 210.0, 240.0, 270.0, 300.0, 330.0]
     points = []
     for theta in thetas:
@@ -180,8 +226,24 @@ def points_in_circle_np(radius, x0=0, y0=0):
         points.append((x0 + cos(theta) * radius, y0 + sin(theta) * radius))
     return points
 
-# choose correct action
+
+# choose optimal action
 def update_robot_pos(robot_x, robot_y, target_x, target_y, prev_target_x, prev_target_y, radius, map_height, map_width):
+    """
+        Inputs:
+        robot_x: the position of robot x-coordinate
+        robot_y: the position of robot y-coordinate 
+        target_x: the position of target x-coordinate
+        target_y: the position of target y-coordinate
+        prev_target_x: the previous position of target x-coordinate
+        prev_target_y: the previous position of target y-coordinate
+        radius: the radius of the circular region around the current robot position
+        map_height: the environment dimensions, height
+        map_width: the environment dimensions, width
+
+        Outputs:
+        bayesian_hist: the belief map of dimensions (belief_map_height, belief_map_width) containing probabilities      
+    """
     action_set = points_in_circle_np(radius, robot_x, robot_y)
     alpha_opt = 10000000
     dist_opt = 10000000
