@@ -32,7 +32,7 @@ prev_target_y = y_true
 
 
 # estimate target position after each time step
-for t in range(2, 200):
+for t in range(2, 500):
 
     # update target position
     target_x_mean, target_y_mean, var, x_true, y_true = extended_kalman_filter(mean[0], mean[1], var, robots_x, robots_y, robots_id, t)
@@ -56,6 +56,6 @@ for t in range(2, 200):
     plot_ellipse(x, y, mean, true_target_x, true_target_y, target_x_mean, target_y_mean, "/home/arpitdec5/Desktop/robot_target_tracking/s2/" + str(t) + ".png", robots_x[0], robots_y[0], robot_movement_x, robot_movement_y)
 
     # update robot position
-    robots_x[0], robots_y[0] = update_robot_pos(robots_x[0], robots_y[0], target_x_mean, target_y_mean, prev_target_x, prev_target_y, action_radius, map_height, map_width)
+    robots_x[0], robots_y[0] = update_robot_pos_ekf(robots_x[0], robots_y[0], target_x_mean, target_y_mean, var, prev_target_x, prev_target_y, action_radius, map_height, map_width, t+1)
     prev_target_x = target_x_mean
     prev_target_y = target_y_mean

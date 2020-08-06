@@ -140,10 +140,10 @@ def extended_kalman_filter(target_xhat_t, target_yhat_t, target_sigma_t, robots_
         (target_xhat_tplus1, target_yhat_tplus1, sigma_matrix_tplus1, x_true, y_true): the predicted target position      
     """
     # get z_true using true target motion
-    omega = 33
+    omega = 100
     sigma_z = 1.0
-    x_true = 2*np.cos((t-1) / omega) + 10
-    y_true = 2*np.sin((t-1) / omega) + 12
+    x_true = 4*np.cos((t-1) / omega) + 8
+    y_true = 4*np.sin((t-1) / omega) + 12
     noise = sigma_z * np.random.randn(1000, 1)
         
     z_true = np.zeros((len(robots_x), 1))
@@ -201,9 +201,12 @@ def plot_ellipse(x, y, mean, x_list, y_list, target_x_mean, target_y_mean, path,
     plt.xlim(0, 20)
     plt.ylim(0, 20)
     plt.scatter(x_list, y_list, color='r')
-    plt.scatter(robot_movement_x, robot_movement_y, color='b')
+    if(len(robot_movement_x) > 10):
+        plt.plot(robot_movement_x, robot_movement_y, color='b')
+    else:
+        plt.plot(robot_movement_x, robot_movement_y, color='b')    
     plt.scatter([target_x_mean], [target_y_mean], color='b')
-    plt.plot([robot_x, target_x_mean], [robot_y, target_y_mean], color='b')
+    #plt.plot([robot_x, target_x_mean], [robot_y, target_y_mean], color='b')
     plt.savefig(path)
     plt.cla()
     plt.close()
@@ -223,8 +226,42 @@ def points_in_circle_np(radius, x0=0, y0=0):
     points = []
     for theta in thetas:
         theta = (theta * pi) / 180.0
-        points.append((x0 + cos(theta) * radius, y0 + sin(theta) * radius))
+        points.append((float(x0 + cos(theta) * radius), float(y0 + sin(theta) * radius)))
     return points
+
+
+# choose optimal action
+def update_robot_pos_ekf(robot_x, robot_y, target_x, target_y, var, prev_target_x, prev_target_y, radius, map_height, map_width, t):
+    """
+        Inputs:
+        robot_x: the position of robot x-coordinate
+        robot_y: the position of robot y-coordinate 
+        target_x: the position of target x-coordinate
+        target_y: the position of target y-coordinate
+        var: the uncertainty in target position
+        prev_target_x: the previous position of target x-coordinate
+        prev_target_y: the previous position of target y-coordinate
+        radius: the radius of the circular region around the current robot position
+        map_height: the environment dimensions, height
+        map_width: the environment dimensions, width
+        t: the time step
+
+        Outputs:
+        (best_action[0], best_action[1]): updated robot position     
+    """
+    action_set = points_in_circle_np(radius, robot_x, robot_y)
+    best_val = np.log(np.linalg.det(var))
+    best_action = (robot_x, robot_y)
+    for action in action_set:
+        curr_robot_x = action[0]
+        curr_robot_y = action[1]
+        if(curr_robot_x >= 1 and curr_robot_x < (map_height-1) and curr_robot_y >= 1 and curr_robot_y < (map_width-1)):
+            _, _, var, _, _ = extended_kalman_filter(target_x, target_y, var, [curr_robot_x], [curr_robot_y], [1], t)
+            val = np.log(np.linalg.det(var))
+            if(val < best_val):
+                best_val = val
+                best_action = (curr_robot_x, curr_robot_y)
+    return (best_action[0], best_action[1])
 
 
 # choose optimal action
@@ -242,7 +279,7 @@ def update_robot_pos(robot_x, robot_y, target_x, target_y, prev_target_x, prev_t
         map_width: the environment dimensions, width
 
         Outputs:
-        bayesian_hist: the belief map of dimensions (belief_map_height, belief_map_width) containing probabilities      
+        (best_action[0], best_action[1]): updated robot position
     """
     action_set = points_in_circle_np(radius, robot_x, robot_y)
     alpha_opt = 10000000
@@ -251,7 +288,7 @@ def update_robot_pos(robot_x, robot_y, target_x, target_y, prev_target_x, prev_t
     for action in action_set:
         curr_robot_x = action[0]
         curr_robot_y = action[1]
-        if(curr_robot_x >= 1 and curr_robot_x < map_height and curr_robot_y >= 1 and curr_robot_y < map_width):
+        if(curr_robot_x >= 1 and curr_robot_x < (map_height-1) and curr_robot_y >= 1 and curr_robot_y < (map_width-1)):
             m1 = (prev_target_y - robot_y) / (prev_target_x - robot_x + 1e-8)
             m2 = (target_y - curr_robot_y) / (target_x - curr_robot_x + 1e-8)
             d1 = np.sqrt((target_x - robot_x)**2 + (target_y - robot_y)**2)
