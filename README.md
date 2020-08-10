@@ -14,6 +14,12 @@ Greedy algorithm using EKF(Target moving slow)
 Greedy algorithm using EKF(Target moving fast)
 ![](https://j.gifs.com/QnEp90.gif)
 
+Greedy algorithm using BH(Target moving slow)
+![](https://j.gifs.com/ZYQQOv.gif)
+
+Greedy algorithm using BH(Target moving fast)
+![](https://j.gifs.com/3QDDRr.gif)
+
 
 ### Instructions for running the code
 
