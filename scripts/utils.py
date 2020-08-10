@@ -23,9 +23,17 @@ def render(t, x_mesh, y_mesh, belief_map, x_target, y_target, robot_movement_x, 
         robot_movement_y: the list of robot paths y-coordinates
     """
     plt.cla()
+    plt.title("Greedy algorithm using BH(Target moving fast)")
+    plt.xlabel("x")
+    plt.ylabel("y")
     plt.contourf(x_mesh, y_mesh, belief_map, cmap=cm.inferno)
-    plt.plot(x_target, y_target, 'o', c='b')
-    plt.plot(robot_movement_x, robot_movement_y, 's', c='r')
+    plt.plot(x_target, y_target, 'b--')
+    plt.plot(x_target[len(x_target) - 1], y_target[len(y_target) - 1], 'o', c='b', marker='*')
+    if(len(robot_movement_x) < 8):
+        plt.plot(robot_movement_x, robot_movement_y, 'r--')
+    else:
+        plt.plot(robot_movement_x[-8:], robot_movement_y[-8:], 'r--')
+    plt.scatter(robot_movement_x[len(robot_movement_x) - 1], robot_movement_y[len(robot_movement_y) - 1], color='r', marker='D')
     plt.savefig("/home/arpitdec5/Desktop/robot_target_tracking/s1/" + str(t) + ".png")
     #plt.show()
 
@@ -69,8 +77,8 @@ def get_target_position(t, x_true, y_true):
         (x_true, y_true): the target position at next time step      
     """
     omega = 33
-    x_true = 2*np.cos((t-1) / omega) + 10
-    y_true = 2*np.sin((t-1) / omega) + 12
+    x_true = 3*np.cos((t-1) / omega) + 9
+    y_true = 3*np.sin((t-1) / omega) + 12
     return (x_true, y_true)
 
 
