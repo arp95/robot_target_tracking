@@ -32,7 +32,7 @@ prev_target_y = y_true
 
 
 # estimate target position after each time step
-for t in range(2, 500):
+for t in range(2, 200):
 
     # update target position
     target_x_mean, target_y_mean, var, x_true, y_true = extended_kalman_filter(mean[0], mean[1], var, robots_x, robots_y, robots_id, t)

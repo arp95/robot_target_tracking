@@ -140,10 +140,10 @@ def extended_kalman_filter(target_xhat_t, target_yhat_t, target_sigma_t, robots_
         (target_xhat_tplus1, target_yhat_tplus1, sigma_matrix_tplus1, x_true, y_true): the predicted target position      
     """
     # get z_true using true target motion
-    omega = 100
+    omega = 33
     sigma_z = 1.0
-    x_true = 4*np.cos((t-1) / omega) + 8
-    y_true = 4*np.sin((t-1) / omega) + 12
+    x_true = 3*np.cos((t-1) / omega) + 9
+    y_true = 3*np.sin((t-1) / omega) + 12
     noise = sigma_z * np.random.randn(1000, 1)
         
     z_true = np.zeros((len(robots_x), 1))
@@ -198,15 +198,20 @@ def plot_ellipse(x, y, mean, x_list, y_list, target_x_mean, target_y_mean, path,
     confidence_ellipse(x, y, ax_nstd, n_std=1, edgecolor='firebrick')
     ax_nstd.scatter(mean[0], mean[1], c='b', s=1)
     ax_nstd.legend()
+    plt.title("Greedy algorithm using EKF(Target moving fast)")
+    plt.xlabel("x")
+    plt.ylabel("y")
     plt.xlim(0, 20)
     plt.ylim(0, 20)
-    plt.scatter(x_list, y_list, color='r')
-    if(len(robot_movement_x) > 10):
-        plt.plot(robot_movement_x, robot_movement_y, color='b')
+    plt.plot(x_list, y_list, 'b--')
+    plt.scatter(x_list[len(x_list)-1], y_list[len(y_list)-1], color='b', marker='*')
+    plt.scatter([target_x_mean], [target_y_mean], color='b', marker="s")
+    if(len(robot_movement_x) < 8):
+        plt.plot(robot_movement_x, robot_movement_y, 'r--')
     else:
-        plt.plot(robot_movement_x, robot_movement_y, color='b')    
-    plt.scatter([target_x_mean], [target_y_mean], color='b')
-    #plt.plot([robot_x, target_x_mean], [robot_y, target_y_mean], color='b')
+        plt.plot(robot_movement_x[-8:], robot_movement_y[-8:], 'r--')
+    plt.scatter(robot_x, robot_y, color='r', marker='D')    
+    plt.plot([robot_x, target_x_mean], [robot_y, target_y_mean], color='r')
     plt.savefig(path)
     plt.cla()
     plt.close()
