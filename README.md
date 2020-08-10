@@ -6,9 +6,13 @@ Arpit Aggarwal
 Lifeng Zhou
 
 
-### Sample Output
-![Screenshot](outputs/sample.png)
-![Screenshot](outputs/sample1.png)
+### Results
+
+Greedy algorithm using EKF(Target moving slow)
+![](https://j.gifs.com/L7yk4X.gif)
+
+Greedy algorithm using EKF(Target moving fast)
+![](https://j.gifs.com/QnEp90.gif)
 
 
 ### Instructions for running the code
