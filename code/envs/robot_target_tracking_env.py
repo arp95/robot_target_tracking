@@ -39,7 +39,7 @@ class RobotTargetTrackingEnv(gym.GoalEnv):
         self.sigma_meas = 1.0
         self.time_step = 1
 
-        self.action_space = spaces.Box(-np.pi, np.pi, shape=(1,), dtype='float32')
+        self.action_space = spaces.Box(0, 2*np.pi, shape=(1,), dtype='float32')
 
         self.dx = 0.1
         self.num_datapts = int(self.len_workspace / self.dx)
@@ -67,7 +67,7 @@ class RobotTargetTrackingEnv(gym.GoalEnv):
             self.target_motion_omegas = target_motion_omegas
         else:
             for index in range(0, self.num_targets):
-                self.target_motion_omegas[index] = 100
+                self.target_motion_omegas[index] = 33
 
         self.robot_movement_x = []
         self.robot_movement_y = []
@@ -122,10 +122,9 @@ class RobotTargetTrackingEnv(gym.GoalEnv):
 
         done = False
         reward = None
-        if(self.time_step > 500):
-            done = True
-
         reward, done = self.compute_reward()        
+        if(self.time_step > 100):
+            done = True
 
         #if self.image_representation:
         #    self.image = torch.flip(self.belief_map.sum(0).t(), dims=(0,))
@@ -186,6 +185,7 @@ class RobotTargetTrackingEnv(gym.GoalEnv):
         """ 
             Function for rendering the environment
         """
+        plt.cla()
         fig, ax_nstd = plt.subplots(figsize=(8, 8))
         ax_nstd.axvline(c='grey', lw=1)
         ax_nstd.axhline(c='grey', lw=1)
@@ -205,8 +205,7 @@ class RobotTargetTrackingEnv(gym.GoalEnv):
         plt.plot(self.robot_movement_x, self.robot_movement_y, 'r--')
         plt.plot(self.x_list, self.y_list, 'b--')
         plt.scatter(float(self.sensors_pos[0, 0]), float(self.sensors_pos[0, 1]), color='r', marker='D') 
-        plt.show()
-        plt.cla()
+        plt.pause(0.001)
 
 
     # reference: https://matplotlib.org/3.1.0/gallery/statistics/confidence_ellipse.html
