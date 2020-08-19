@@ -274,6 +274,7 @@ def update_robot_pos_ekf(robot_x, robot_y, target_x, target_y, var, prev_target_
             if(val < best_val):
                 best_val = val
                 best_action = (curr_robot_x, curr_robot_y)
+    print(best_val)
     return (best_action[0], best_action[1])
 
 

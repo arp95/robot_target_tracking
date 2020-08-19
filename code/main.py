@@ -19,7 +19,8 @@ env.env_parametrization()
 env.reset()
 
 # play with environment
-for index in range(0, 50):
-    env.step([0])
+for index in range(0, 400):
+    state, reward, done, _ = env.step([0])
+    print(reward)
 env.render()
 print("Done!")
