@@ -123,7 +123,7 @@ class RobotTargetTrackingEnv(gym.GoalEnv):
         done = False
         reward = None
         reward, done = self.compute_reward()        
-        if(self.time_step > 100):
+        if(self.time_step > 100 or float(self.sensors_pos[0, 0]) <= 0 or float(self.sensors_pos[0, 1]) <= 0 or float(self.sensors_pos[0, 0]) >= self.len_workspace or float(self.sensors_pos[0, 1]) >= self.len_workspace):
             done = True
 
         #if self.image_representation:

@@ -107,3 +107,4 @@ for epoch in range(0, EPOCHS):
 
 # plot reward curve
 plt.plot(e, r)
+plt.show()
