@@ -35,10 +35,10 @@ class RobotTargetTrackingEnv(gym.GoalEnv):
 
         self.len_workspace = 20
         self.workspace = np.array([[0, self.len_workspace], [0, self.len_workspace]])
-        self.step_size = 1.0
         self.sigma_meas = 1.0
         self.time_step = 1
 
+        self.step_size = 1.0
         self.action_space = spaces.Box(0, 2*np.pi, shape=(1,), dtype='float32')
 
         self.dx = 0.1
@@ -221,7 +221,9 @@ class RobotTargetTrackingEnv(gym.GoalEnv):
         """ 
             Function for computing the reward
         """
-        val = np.log(np.linalg.det(self.estimated_targets_var))
+        val = 0.0
+        for index in range(0, self.num_targets):
+            val += np.log(np.linalg.det(self.estimated_targets_var[index]))
         return -val, False
 
 
