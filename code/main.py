@@ -4,6 +4,7 @@ import gym
 import numpy as np
 from gym.envs.registration import register
 import logging
+import matplotlib.pyplot as plt
 
 
 logger = logging.getLogger(__name__)
@@ -28,38 +29,37 @@ END_EPSILON_DECAYING = EPOCHS // 2
 epsilon_decay = epsilon / (END_EPSILON_DECAYING - START_EPSILON_DECAYING)
 
 # run qlearning algo
-q_table = np.random.uniform(low=-1, high=1, size=(11, 11, 11, 8))
-print(q_table[(7, 7, 5)])
-print()
-print()
-
+q_table = np.random.uniform(low=-1, high=1, size=(11, 11, 20, 8))
+epoch_reward = 0
+e = []
+r = []
 
 def get_state(state):
-    new_state = (0, 0, 0)
-    if(state[0] % 2 == 0):
+    new_state = np.array([0, 0, 0])
+    if(state[0]%2 == 0):
         new_state[0] = int(state[0] / 2.0)
     else:
         new_state[0] = int((state[0] - 1) / 2.0) + 1
 
-    if(state[1] % 2 == 0):
+    if(state[1]%2 == 0):
         new_state[1] = int(state[1] / 2.0)
     else:
         new_state[1] = int((state[1] - 1) / 2.0) + 1
 
-    if(state[2] % 2 == 0):
-        new_state[2] = int(state[2] / 2.0)
+    if(state[2]%3 == 0):
+        new_state[2] = int(state[2] / 3.0)
     else:
-        new_state[2] = int((state[2] - 1) / 2.0) + 1
+        new_state[2] = int((state[2] - 1) / 3.0) + 1
     return new_state  
 
 
 for epoch in range(0, EPOCHS):
     discrete_state = env.reset()
-    state = get_state(discrete_state)
+    state = get_state(discrete_state.numpy())
     done = False
     while not done:
         if(np.random.random() > epsilon):
-            action = np.argmax(q_table[state])
+            action = np.argmax(q_table[(state[0], state[1], state[2])])
         else:
             action = np.random.randint(0, 8)
         action_index = action
@@ -81,22 +81,29 @@ for epoch in range(0, EPOCHS):
             action = [315*np.pi / 180]
 
         new_state, reward, done, _ = env.step(action)
-        new_state = get_state(new_state)
+        epoch_reward += reward
+        new_state = get_state(new_state.numpy())
         
         #if(epoch%100 == 0):
         #    env.render()
         
         if not done:
-            max_future_q = np.max(q_table[new_state])
-            current_q = q_table[state + (action_index, )]        
+            max_future_q = np.max(q_table[(new_state[0], new_state[1], new_state[2])])
+            current_q = q_table[(state[0], state[1], state[2], action_index)]        
             new_q = ((1 - LR) * current_q) + (LR * (reward + DISCOUNT * max_future_q))
-            q_table[state + (action_index, )] = new_q
+            q_table[(state[0], state[1], state[2], action_index)] = new_q
         state = new_state
 
     if(END_EPSILON_DECAYING >= epoch >= START_EPSILON_DECAYING):
         epsilon -= epsilon_decay
+    if(epoch%1000 == 0):
+        e.append(epoch)
+        r.append(epoch_reward)
+        print("Epoch Reward:")
+        print(epoch_reward)
+        print()
+    epoch_reward = 0
     env.close()
 
-print()
-print()
-print(q_table[(7, 7, 5)])
+# plot reward curve
+plt.plot(e, r)
