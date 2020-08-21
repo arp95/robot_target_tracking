@@ -202,10 +202,13 @@ class RobotTargetTrackingEnv(gym.GoalEnv):
             plt.scatter(float(self.true_targets_pos[index, 0]), float(self.true_targets_pos[index, 1]), color='b', marker='*')
             plt.scatter([float(self.estimated_targets_mean[index, 0])], [float(self.estimated_targets_mean[index, 1])], color='b', marker="s")
             plt.plot([float(self.sensors_pos[0, 0]), float(self.estimated_targets_mean[index, 0])], [float(self.sensors_pos[0, 1]), float(self.estimated_targets_mean[index, 1])], color='r')
-        plt.plot(self.robot_movement_x, self.robot_movement_y, 'r--')
+        if(len(self.robot_movement_x) < 8):
+            plt.plot(self.robot_movement_x, self.robot_movement_y, 'r--')
+        else:
+            plt.plot(self.robot_movement_x[-8:], self.robot_movement_y[-8:], 'r--')
         plt.plot(self.x_list, self.y_list, 'b--')
         plt.scatter(float(self.sensors_pos[0, 0]), float(self.sensors_pos[0, 1]), color='r', marker='D') 
-        plt.pause(0.001)
+        plt.savefig("/home/arpitdec5/Desktop/robot_target_tracking/s2/" + str(self.time_step) + ".png")
 
 
     # reference: https://matplotlib.org/3.1.0/gallery/statistics/confidence_ellipse.html
