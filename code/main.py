@@ -28,7 +28,7 @@ START_EPSILON_DECAYING = 1
 END_EPSILON_DECAYING = EPOCHS // 2
 epsilon_decay = epsilon / (END_EPSILON_DECAYING - START_EPSILON_DECAYING)
 
-# run qlearning algo
+# train qlearning
 q_table = np.random.uniform(low=-1, high=1, size=(11, 11, 20, 8))
 epoch_reward = 0
 e = []
@@ -105,8 +105,14 @@ for epoch in range(0, EPOCHS):
     epoch_reward = 0
     env.close()
 
+# plot reward curve
+plt.xlabel("Episodes")
+plt.ylabel("Avg. Reward")
+plt.plot(e, r)
+plt.savefig("/home/arpitdec5/Desktop/qlearning_reward.png")
 
-# run the qlearning algo
+
+# test qlearning
 discrete_state = env.reset()
 state = get_state(discrete_state.numpy())
 done = False
@@ -136,10 +142,3 @@ while not done:
 
     env.render()
     env.close()
-
-
-# plot reward curve
-plt.xlabel("Episodes")
-plt.ylabel("Avg. Reward")
-plt.plot(e, r)
-plt.savefig("/home/arpitdec5/Desktop/qlearning_reward.png")
