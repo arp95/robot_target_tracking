@@ -8,6 +8,9 @@ Lifeng Zhou
 
 ### Results
 
+Performance of Q-Learning Algorithm (Episodes=30000, LR=0.1, DISCOUNT=0.95, EPSILON=0.5)
+![](outputs/qlearning_reward.png)
+
 Greedy algorithm using EKF(Target moving slow)
 ![](https://j.gifs.com/L7yk4X.gif)
 
