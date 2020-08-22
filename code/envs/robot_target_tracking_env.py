@@ -93,7 +93,7 @@ class RobotTargetTrackingEnv(gym.GoalEnv):
             self.sigma_meas = 1.0
             self.normal_dist_1d_torch = lambda x, mu, sgm: 1.0 / (np.sqrt(2 * np.pi*sgm**2)) * np.exp(-0.5 / sgm**2 * (np.abs(x - mu)**2))
 
-        true_obs = self._get_obs()
+        true_obs = self.get_estimated_obs()
         self.state = torch.cat((self.sensors_pos[0], torch.tensor(true_obs).float()))
         self.observation_space = spaces.Box(-np.inf, np.inf, shape=self.state.shape, dtype='float32')
 
@@ -131,7 +131,7 @@ class RobotTargetTrackingEnv(gym.GoalEnv):
         #    self.image = F.interpolate(self.image.unsqueeze(0).unsqueeze(0), (256,256), mode='bilinear')
         #    obs = self.convnet(self.image).squeeze()
 
-        true_obs = self._get_obs()
+        true_obs = self.get_estimated_obs()
         self.state = torch.cat((self.sensors_pos[0], true_obs)).detach()
         return self.state, reward, done, None
 
@@ -169,7 +169,7 @@ class RobotTargetTrackingEnv(gym.GoalEnv):
         #    self.image = torch.zeros(1,1,256,256)
         #    obs = self.convnet(self.image).squeeze()
 
-        true_obs = self._get_obs()
+        true_obs = self.get_estimated_obs()
         self.state = torch.cat((self.sensors_pos[0], true_obs)).detach()
         return self.state
 
@@ -208,7 +208,8 @@ class RobotTargetTrackingEnv(gym.GoalEnv):
             plt.plot(self.robot_movement_x[-8:], self.robot_movement_y[-8:], 'r--')
         plt.plot(self.x_list, self.y_list, 'b--')
         plt.scatter(float(self.sensors_pos[0, 0]), float(self.sensors_pos[0, 1]), color='r', marker='D') 
-        plt.savefig("/home/arpitdec5/Desktop/robot_target_tracking/s2/" + str(self.time_step) + ".png")
+        #plt.savefig("/home/arpitdec5/Desktop/robot_target_tracking/s2/" + str(self.time_step) + ".png")
+        plt.show()
 
 
     # reference: https://matplotlib.org/3.1.0/gallery/statistics/confidence_ellipse.html
@@ -276,6 +277,20 @@ class RobotTargetTrackingEnv(gym.GoalEnv):
 
         true_obs = true_measurement + (self.sigma_meas * torch.randn(targets_pos.shape[0]))
         return true_obs
+
+    def get_estimated_obs(self):
+        """ 
+            Get observation function
+            Returns the noisy relative measurement depending on the measurement model (bearing or range)
+        """
+        targets_pos = self.estimated_targets_mean
+        sensor_pos = self.sensors_pos[0]
+
+        if self.meas_model == 'bearing':
+            true_measurement = torch.atan2(targets_pos[:, 1] - sensor_pos[1], targets_pos[:, 0] - sensor_pos[0])
+        elif self.meas_model == 'range':
+            true_measurement = torch.norm(targets_pos - sensor_pos, p=2, dim=1)
+        return true_measurement
 
 
     def update_true_targets_pos(self):
