@@ -1,10 +1,20 @@
 # header files
-import torch
 import gym
+import math
+import random
 import numpy as np
+import matplotlib
+import matplotlib.pyplot as plt
+from collections import namedtuple
+from itertools import count
+from PIL import Image
 from gym.envs.registration import register
 import logging
-import matplotlib.pyplot as plt
+import torch
+import torch.nn as nn
+import torch.optim as optim
+import torch.nn.functional as F
+import torchvision.transforms as T
 
 
 logger = logging.getLogger(__name__)
@@ -14,10 +24,12 @@ register(
 )
 
 # initialise environment
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 env_name = "RobotTargetTrackingEnv-v0"
 env = gym.make(env_name)
 env.env_parametrization()
 env.reset()
+
 
 # constants
 LR = 0.1

@@ -11,7 +11,9 @@ import os
 import copy
 import numpy as np
 import torch
+import torch.nn as nn
 import torch.nn.functional as F
+import torchvision
 
 import gym
 from gym import error, spaces
@@ -32,7 +34,6 @@ class RobotTargetTrackingEnv(gym.GoalEnv):
         """
         self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
         self.seed()
-
         self.len_workspace = 20
         self.workspace = np.array([[0, self.len_workspace], [0, self.len_workspace]])
         self.sigma_meas = 1.0
@@ -45,6 +46,13 @@ class RobotTargetTrackingEnv(gym.GoalEnv):
         self.num_datapts = int(self.len_workspace / self.dx)
         self.x_mesh, self.y_mesh = torch.meshgrid(torch.arange(0, self.len_workspace, self.dx), torch.arange(0, self.len_workspace, self.dx))
         self.xy_mesh = torch.stack((self.x_mesh.reshape(-1), self.y_mesh.reshape(-1))).t()
+
+        self.transforms = torchvision.transforms.Compose([torchvision.transforms.ToPILImage(),
+                                       torchvision.transforms.Resize((224, 224)),
+                                       torchvision.transforms.ToTensor()])
+        self.model = torchvision.models.resnet50(pretrained=True)
+        self.model.fc = torch.nn.Linear(2048, 12)
+        self.model.to(self.device)
 
 
     def env_parametrization(self, num_targets=1, num_sensors=1, target_motion_omegas=None, meas_model='range', image_representation=False):
@@ -68,6 +76,14 @@ class RobotTargetTrackingEnv(gym.GoalEnv):
         else:
             for index in range(0, self.num_targets):
                 self.target_motion_omegas[index] = 33
+
+        self.heatmap = torch.zeros(self.len_workspace, self.len_workspace)
+        for index in range(0, self.num_targets):
+            x, y = self.get_correlated_dataset(1000, self.estimated_targets_var[index].numpy(), (float(self.estimated_targets_mean[index, 0]), float(self.estimated_targets_mean[index, 1])), (2, 2))
+            for index1 in range(0, len(x)):
+                if(x[index1] > 1 and x[index1] < (self.len_workspace-1) and y[index1] > 1 and y[index1] < (self.len_workspace-1)):
+                    self.heatmap[self.len_workspace - int(y[index1]), int(x[index1])] += 1
+        self.heatmap = self.transforms(self.heatmap).unsqueeze(0)
 
         self.robot_movement_x = []
         self.robot_movement_y = []
@@ -120,6 +136,14 @@ class RobotTargetTrackingEnv(gym.GoalEnv):
         self.x_list.append(float(self.true_targets_pos[0, 0]))
         self.y_list.append(float(self.true_targets_pos[0, 1]))
 
+        self.heatmap = torch.zeros(self.len_workspace, self.len_workspace)
+        for index in range(0, self.num_targets):
+            x, y = self.get_correlated_dataset(1000, self.estimated_targets_var[index].numpy(), (float(self.estimated_targets_mean[index, 0]), float(self.estimated_targets_mean[index, 1])), (2, 2))
+            for index1 in range(0, len(x)):
+                if(x[index1] > 1 and x[index1] < (self.len_workspace-1) and y[index1] > 1 and y[index1] < (self.len_workspace-1)):
+                    self.heatmap[self.len_workspace - int(y[index1]), int(x[index1])] += 1
+        self.heatmap = self.transforms(self.heatmap).unsqueeze(0)
+
         done = False
         reward = None
         reward, done = self.compute_reward()        
@@ -164,6 +188,14 @@ class RobotTargetTrackingEnv(gym.GoalEnv):
                 self.sensors_pos[index, 1] -= (self.sensors_pos[index, 1] - self.len_workspace + 1)
             if(self.sensors_pos[index, 1] <= 0):
                 self.sensors_pos[index, 1] = (-self.sensors_pos[index, 1] + 1)      
+
+        self.heatmap = torch.zeros(self.len_workspace, self.len_workspace)
+        for index in range(0, self.num_targets):
+            x, y = self.get_correlated_dataset(1000, self.estimated_targets_var[index].numpy(), (float(self.estimated_targets_mean[index, 0]), float(self.estimated_targets_mean[index, 1])), (2, 2))
+            for index1 in range(0, len(x)):
+                if(x[index1] > 1 and x[index1] < (self.len_workspace-1) and y[index1] > 1 and y[index1] < (self.len_workspace-1)):
+                    self.heatmap[self.len_workspace - int(y[index1]), int(x[index1])] += 1
+        self.heatmap = self.transforms(self.heatmap).unsqueeze(0)
 
         #if self.image_representation:
         #    self.image = torch.zeros(1,1,256,256)
