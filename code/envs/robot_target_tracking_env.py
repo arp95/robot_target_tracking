@@ -113,12 +113,6 @@ class RobotTargetTrackingEnv(gym.GoalEnv):
         self.state = torch.cat((self.sensors_pos[0], torch.tensor(true_obs).float()))
         self.observation_space = spaces.Box(-np.inf, np.inf, shape=self.state.shape, dtype='float32')
 
-        #self.image_representation = image_representation
-        #if image_representation:
-        #   self.convnet = ConvNet(out_dim=128, pretrained=False)
-        #    self.image = torch.zeros(1,1,256,256)
-        #    obs = self.convnet(self.image).squeeze()
-
     
     def step(self, action):
         """ 
@@ -149,11 +143,6 @@ class RobotTargetTrackingEnv(gym.GoalEnv):
         reward, done = self.compute_reward()        
         if(self.time_step > 100 or float(self.sensors_pos[0, 0]) <= 0 or float(self.sensors_pos[0, 1]) <= 0 or float(self.sensors_pos[0, 0]) >= self.len_workspace or float(self.sensors_pos[0, 1]) >= self.len_workspace):
             done = True
-
-        #if self.image_representation:
-        #    self.image = torch.flip(self.belief_map.sum(0).t(), dims=(0,))
-        #    self.image = F.interpolate(self.image.unsqueeze(0).unsqueeze(0), (256,256), mode='bilinear')
-        #    obs = self.convnet(self.image).squeeze()
 
         true_obs = self.get_estimated_obs()
         self.state = torch.cat((self.sensors_pos[0], true_obs)).detach()
@@ -197,10 +186,6 @@ class RobotTargetTrackingEnv(gym.GoalEnv):
                     self.heatmap[self.len_workspace - int(y[index1]), int(x[index1])] += 1
         self.heatmap = self.transforms(self.heatmap).unsqueeze(0)
 
-        #if self.image_representation:
-        #    self.image = torch.zeros(1,1,256,256)
-        #    obs = self.convnet(self.image).squeeze()
-
         true_obs = self.get_estimated_obs()
         self.state = torch.cat((self.sensors_pos[0], true_obs)).detach()
         return self.state
@@ -240,8 +225,9 @@ class RobotTargetTrackingEnv(gym.GoalEnv):
             plt.plot(self.robot_movement_x[-8:], self.robot_movement_y[-8:], 'r--')
         plt.plot(self.x_list, self.y_list, 'b--')
         plt.scatter(float(self.sensors_pos[0, 0]), float(self.sensors_pos[0, 1]), color='r', marker='D') 
-        #plt.savefig("/home/arpitdec5/Desktop/robot_target_tracking/s2/" + str(self.time_step) + ".png")
-        plt.show()
+        plt.savefig("/home/arpitdec5/Desktop/robot_target_tracking/s2/" + str(self.time_step) + ".png")
+        torchvision.utils.save_image(self.heatmap, "/home/arpitdec5/Desktop/robot_target_tracking/s1/" + str(self.time_step) + ".png")
+        #plt.show()
 
 
     # reference: https://matplotlib.org/3.1.0/gallery/statistics/confidence_ellipse.html
@@ -309,6 +295,7 @@ class RobotTargetTrackingEnv(gym.GoalEnv):
 
         true_obs = true_measurement + (self.sigma_meas * torch.randn(targets_pos.shape[0]))
         return true_obs
+
 
     def get_estimated_obs(self):
         """ 
