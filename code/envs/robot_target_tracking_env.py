@@ -47,11 +47,9 @@ class RobotTargetTrackingEnv(gym.GoalEnv):
         self.x_mesh, self.y_mesh = torch.meshgrid(torch.arange(0, self.len_workspace, self.dx), torch.arange(0, self.len_workspace, self.dx))
         self.xy_mesh = torch.stack((self.x_mesh.reshape(-1), self.y_mesh.reshape(-1))).t()
 
-        self.transforms = torchvision.transforms.Compose([torchvision.transforms.ToPILImage(),
-                                       torchvision.transforms.Resize((224, 224)),
-                                       torchvision.transforms.ToTensor()])
         self.model = torchvision.models.resnet50(pretrained=True)
-        self.model.fc = torch.nn.Linear(2048, 12)
+        self.model.conv1 = nn.Conv2d(1, 64, kernel_size=7, stride=2, padding=3, bias=False)
+        self.model.fc = torch.nn.Linear(2048, 128)
         self.model.to(self.device)
 
 
@@ -79,11 +77,12 @@ class RobotTargetTrackingEnv(gym.GoalEnv):
 
         self.heatmap = torch.zeros(self.len_workspace, self.len_workspace)
         for index in range(0, self.num_targets):
-            x, y = self.get_correlated_dataset(1000, self.estimated_targets_var[index].numpy(), (float(self.estimated_targets_mean[index, 0]), float(self.estimated_targets_mean[index, 1])), (2, 2))
+            x, y = self.get_correlated_dataset(500, self.estimated_targets_var[index].numpy(), (float(self.estimated_targets_mean[index, 0]), float(self.estimated_targets_mean[index, 1])), (2, 2))
             for index1 in range(0, len(x)):
                 if(x[index1] > 1 and x[index1] < (self.len_workspace-1) and y[index1] > 1 and y[index1] < (self.len_workspace-1)):
                     self.heatmap[self.len_workspace - int(y[index1]), int(x[index1])] += 1
-        self.heatmap = self.transforms(self.heatmap).unsqueeze(0)
+        self.heatmap = torch.nn.functional.interpolate(self.heatmap.unsqueeze(0).unsqueeze(0), (224, 224), mode='bilinear')
+        true_obs = self.model(self.heatmap).squeeze()
 
         self.robot_movement_x = []
         self.robot_movement_y = []
@@ -109,7 +108,6 @@ class RobotTargetTrackingEnv(gym.GoalEnv):
             self.sigma_meas = 1.0
             self.normal_dist_1d_torch = lambda x, mu, sgm: 1.0 / (np.sqrt(2 * np.pi*sgm**2)) * np.exp(-0.5 / sgm**2 * (np.abs(x - mu)**2))
 
-        true_obs = self.get_estimated_obs()
         self.state = torch.cat((self.sensors_pos[0], torch.tensor(true_obs).float()))
         self.observation_space = spaces.Box(-np.inf, np.inf, shape=self.state.shape, dtype='float32')
 
@@ -132,11 +130,12 @@ class RobotTargetTrackingEnv(gym.GoalEnv):
 
         self.heatmap = torch.zeros(self.len_workspace, self.len_workspace)
         for index in range(0, self.num_targets):
-            x, y = self.get_correlated_dataset(1000, self.estimated_targets_var[index].numpy(), (float(self.estimated_targets_mean[index, 0]), float(self.estimated_targets_mean[index, 1])), (2, 2))
+            x, y = self.get_correlated_dataset(500, self.estimated_targets_var[index].numpy(), (float(self.estimated_targets_mean[index, 0]), float(self.estimated_targets_mean[index, 1])), (2, 2))
             for index1 in range(0, len(x)):
                 if(x[index1] > 1 and x[index1] < (self.len_workspace-1) and y[index1] > 1 and y[index1] < (self.len_workspace-1)):
                     self.heatmap[self.len_workspace - int(y[index1]), int(x[index1])] += 1
-        self.heatmap = self.transforms(self.heatmap).unsqueeze(0)
+        self.heatmap = torch.nn.functional.interpolate(self.heatmap.unsqueeze(0).unsqueeze(0), (224, 224), mode='bilinear')
+        true_obs = self.model(self.heatmap).squeeze()
 
         done = False
         reward = None
@@ -144,8 +143,7 @@ class RobotTargetTrackingEnv(gym.GoalEnv):
         if(self.time_step > 100 or float(self.sensors_pos[0, 0]) <= 0 or float(self.sensors_pos[0, 1]) <= 0 or float(self.sensors_pos[0, 0]) >= self.len_workspace or float(self.sensors_pos[0, 1]) >= self.len_workspace):
             done = True
 
-        true_obs = self.get_estimated_obs()
-        self.state = torch.cat((self.sensors_pos[0], true_obs)).detach()
+        self.state = torch.cat((self.sensors_pos[0], torch.tensor(true_obs).float())).detach()
         return self.state, reward, done, None
 
     
@@ -180,14 +178,14 @@ class RobotTargetTrackingEnv(gym.GoalEnv):
 
         self.heatmap = torch.zeros(self.len_workspace, self.len_workspace)
         for index in range(0, self.num_targets):
-            x, y = self.get_correlated_dataset(1000, self.estimated_targets_var[index].numpy(), (float(self.estimated_targets_mean[index, 0]), float(self.estimated_targets_mean[index, 1])), (2, 2))
+            x, y = self.get_correlated_dataset(500, self.estimated_targets_var[index].numpy(), (float(self.estimated_targets_mean[index, 0]), float(self.estimated_targets_mean[index, 1])), (2, 2))
             for index1 in range(0, len(x)):
                 if(x[index1] > 1 and x[index1] < (self.len_workspace-1) and y[index1] > 1 and y[index1] < (self.len_workspace-1)):
                     self.heatmap[self.len_workspace - int(y[index1]), int(x[index1])] += 1
-        self.heatmap = self.transforms(self.heatmap).unsqueeze(0)
+        self.heatmap = torch.nn.functional.interpolate(self.heatmap.unsqueeze(0).unsqueeze(0), (224, 224), mode='bilinear')
+        true_obs = self.model(self.heatmap).squeeze()
 
-        true_obs = self.get_estimated_obs()
-        self.state = torch.cat((self.sensors_pos[0], true_obs)).detach()
+        self.state = torch.cat((self.sensors_pos[0], torch.tensor(true_obs).float())).detach()
         return self.state
 
     
