@@ -143,7 +143,7 @@ class RobotTargetTrackingEnv(gym.GoalEnv):
         if(self.time_step > 100 or float(self.sensors_pos[0, 0]) <= 0 or float(self.sensors_pos[0, 1]) <= 0 or float(self.sensors_pos[0, 0]) >= self.len_workspace or float(self.sensors_pos[0, 1]) >= self.len_workspace):
             done = True
 
-        self.state = torch.cat((self.sensors_pos[0], torch.tensor(true_obs).float())).detach()
+        self.state = torch.cat((self.sensors_pos[0], torch.tensor(true_obs).float()))
         return self.state, reward, done, None
 
     
@@ -185,7 +185,7 @@ class RobotTargetTrackingEnv(gym.GoalEnv):
         self.heatmap = torch.nn.functional.interpolate(self.heatmap.unsqueeze(0).unsqueeze(0), (224, 224), mode='bilinear')
         true_obs = self.model(self.heatmap).squeeze()
 
-        self.state = torch.cat((self.sensors_pos[0], torch.tensor(true_obs).float())).detach()
+        self.state = torch.cat((self.sensors_pos[0], torch.tensor(true_obs).float()))
         return self.state
 
     

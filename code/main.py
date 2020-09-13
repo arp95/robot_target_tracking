@@ -15,6 +15,8 @@ import torch.nn as nn
 import torch.optim as optim
 import torch.nn.functional as F
 import torchvision.transforms as T
+from td3 import *
+from replay_buffer import *
 
 
 logger = logging.getLogger(__name__)
@@ -68,6 +70,7 @@ def get_state(state):
 for epoch in range(0, EPOCHS):
     discrete_state = env.reset()
     state = get_state(discrete_state.numpy())
+    print(discrete_state)
     done = False
     while not done:
         if(np.random.random() > epsilon):
