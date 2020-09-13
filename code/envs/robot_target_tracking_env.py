@@ -40,7 +40,7 @@ class RobotTargetTrackingEnv(gym.GoalEnv):
         self.time_step = 1
 
         self.step_size = 1.0
-        self.action_space = spaces.Box(0, 2*np.pi, shape=(1,), dtype='float32')
+        self.action_space = spaces.Box(-np.pi, np.pi, shape=(1,), dtype='float32')
 
         self.dx = 0.1
         self.num_datapts = int(self.len_workspace / self.dx)
@@ -186,6 +186,7 @@ class RobotTargetTrackingEnv(gym.GoalEnv):
         true_obs = self.model(self.heatmap).squeeze()
 
         self.state = torch.cat((self.sensors_pos[0], torch.tensor(true_obs).float()))
+        self.observation_space = spaces.Box(-np.inf, np.inf, shape=self.state.shape, dtype='float32')
         return self.state
 
     
