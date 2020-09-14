@@ -56,6 +56,6 @@ for t in range(2, 200):
     plot_ellipse(x, y, mean, true_target_x, true_target_y, target_x_mean, target_y_mean, "/home/arpitdec5/Desktop/robot_target_tracking/s2/" + str(t) + ".png", robots_x[0], robots_y[0], robot_movement_x, robot_movement_y)
 
     # update robot position
-    robots_x[0], robots_y[0] = update_robot_pos_ekf(robots_x[0], robots_y[0], target_x_mean, target_y_mean, var, prev_target_x, prev_target_y, action_radius, map_height, map_width, t+1)
+    #robots_x[0], robots_y[0] = update_robot_pos_ekf(robots_x[0], robots_y[0], target_x_mean, target_y_mean, var, prev_target_x, prev_target_y, action_radius, map_height, map_width, t+1)
     prev_target_x = target_x_mean
     prev_target_y = target_y_mean

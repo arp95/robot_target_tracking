@@ -57,7 +57,7 @@ for t in range(2, 200):
     render(t, x_mesh, y_mesh, belief_map, true_target_x, true_target_y, robot_movement_x, robot_movement_y)
 
     # update robot position
-    robots_x[0], robots_y[0] = update_robot_pos(robots_x[0], robots_y[0], x_true, y_true, prev_target_x, prev_target_y, action_radius, map_height, map_width)
+    #robots_x[0], robots_y[0] = update_robot_pos(robots_x[0], robots_y[0], x_true, y_true, prev_target_x, prev_target_y, action_radius, map_height, map_width)
 
     # add robot position for rendering
     robot_movement_x.append(robots_x[0])

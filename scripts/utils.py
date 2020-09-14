@@ -148,7 +148,7 @@ def extended_kalman_filter(target_xhat_t, target_yhat_t, target_sigma_t, robots_
         (target_xhat_tplus1, target_yhat_tplus1, sigma_matrix_tplus1, x_true, y_true): the predicted target position      
     """
     # get z_true using true target motion
-    omega = 33
+    omega = 100
     sigma_z = 1.0
     x_true = 3*np.cos((t-1) / omega) + 9
     y_true = 3*np.sin((t-1) / omega) + 12
@@ -206,7 +206,7 @@ def plot_ellipse(x, y, mean, x_list, y_list, target_x_mean, target_y_mean, path,
     confidence_ellipse(x, y, ax_nstd, n_std=1, edgecolor='firebrick')
     ax_nstd.scatter(mean[0], mean[1], c='b', s=1)
     ax_nstd.legend()
-    plt.title("Greedy algorithm using EKF(Target moving fast)")
+    plt.title("Greedy algorithm using EKF(Target moving slow)")
     plt.xlabel("x")
     plt.ylabel("y")
     plt.xlim(0, 20)
