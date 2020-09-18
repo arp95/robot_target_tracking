@@ -37,7 +37,7 @@ env.reset()
 LR = 0.1
 DISCOUNT = 0.95
 epsilon = 0.5
-EPOCHS = 1001
+EPOCHS = 1
 START_EPSILON_DECAYING = 1
 END_EPSILON_DECAYING = EPOCHS // 2
 epsilon_decay = epsilon / (END_EPSILON_DECAYING - START_EPSILON_DECAYING)
@@ -70,7 +70,6 @@ def get_state(state):
 for epoch in range(0, EPOCHS):
     discrete_state = env.reset()
     state = get_state(discrete_state.numpy())
-    print(discrete_state)
     done = False
     while not done:
         if(np.random.random() > epsilon):
@@ -99,6 +98,8 @@ for epoch in range(0, EPOCHS):
         epoch_reward += reward
         new_state = get_state(new_state.numpy())
         
+        env.render()
+
         #if(epoch%100 == 0):
         #    env.render()
         
@@ -128,32 +129,32 @@ plt.savefig("/home/arpitdec5/Desktop/qlearning_reward.png")
 
 
 # test qlearning
-discrete_state = env.reset()
-state = get_state(discrete_state.numpy())
-done = False
-while not done:
-    action = np.argmax(q_table[(state[0], state[1], state[2])])
-    action_index = action
-    if(action == 0):
-        action = [0]
-    elif(action == 1):
-        action = [np.pi / 4]
-    elif(action == 2):
-        action = [np.pi / 2]
-    elif(action == 3):
-        action = [3*np.pi / 4]
-    elif(action == 4):
-        action = [np.pi]
-    elif(action == 5):
-        action = [225*np.pi / 180]
-    elif(action == 6):
-        action = [3*np.pi / 2]
-    else:
-        action = [315*np.pi / 180]
-
-    new_state, reward, done, _ = env.step(action)
-    new_state = get_state(new_state.numpy())
-    state = new_state    
-
-    env.render()
-    env.close()
+#discrete_state = env.reset()
+#state = get_state(discrete_state.numpy())
+#done = False
+#while not done:
+#    action = np.argmax(q_table[(state[0], state[1], state[2])])
+#    action_index = action
+#    if(action == 0):
+#        action = [0]
+#    elif(action == 1):
+#        action = [np.pi / 4]
+#    elif(action == 2):
+#        action = [np.pi / 2]
+#    elif(action == 3):
+#        action = [3*np.pi / 4]
+#    elif(action == 4):
+#        action = [np.pi]
+#    elif(action == 5):
+#        action = [225*np.pi / 180]
+#    elif(action == 6):
+#        action = [3*np.pi / 2]
+#    else:
+#        action = [315*np.pi / 180]
+#
+#    new_state, reward, done, _ = env.step(action)
+#    new_state = get_state(new_state.numpy())
+#    state = new_state    
+#
+#    env.render()
+#    env.close()

@@ -82,6 +82,7 @@ class RobotTargetTrackingEnv(gym.GoalEnv):
                 if(x[index1] > 1 and x[index1] < (self.len_workspace-1) and y[index1] > 1 and y[index1] < (self.len_workspace-1)):
                     self.heatmap[self.len_workspace - int(y[index1]), int(x[index1])] += 1
         self.heatmap = torch.nn.functional.interpolate(self.heatmap.unsqueeze(0).unsqueeze(0), (224, 224), mode='bilinear')
+        #torchvision.utils.save_image(self.heatmap, "/home/arpitdec5/Desktop/s1/image1.png")
         true_obs = self.model(self.heatmap).squeeze()
 
         self.robot_movement_x = []
@@ -117,7 +118,7 @@ class RobotTargetTrackingEnv(gym.GoalEnv):
             Function to update the environment
         """
         action = np.clip(action[0], self.action_space.low, self.action_space.high)
-        self._set_action(action)
+        #self._set_action(action)
 
         self.time_step = self.time_step + 1
         self.update_true_targets_pos()
@@ -135,6 +136,7 @@ class RobotTargetTrackingEnv(gym.GoalEnv):
                 if(x[index1] > 1 and x[index1] < (self.len_workspace-1) and y[index1] > 1 and y[index1] < (self.len_workspace-1)):
                     self.heatmap[self.len_workspace - int(y[index1]), int(x[index1])] += 1
         self.heatmap = torch.nn.functional.interpolate(self.heatmap.unsqueeze(0).unsqueeze(0), (224, 224), mode='bilinear')
+        #torchvision.utils.save_image(self.heatmap, "/home/arpitdec5/Desktop/s1/image" + str(self.time_step) + ".png")
         true_obs = self.model(self.heatmap).squeeze()
 
         done = False
