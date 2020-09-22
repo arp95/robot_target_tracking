@@ -76,9 +76,9 @@ class RobotTargetTrackingEnv(gym.GoalEnv):
             for index in range(0, self.num_targets):
                 self.target_motion_omegas[index] = 33
 
-        self.heatmap = torch.zeros(256, 256)
-        x = np.linspace(0, self.len_workspace, 256)
-        y = np.linspace(0, self.len_workspace, 256)
+        self.heatmap = torch.zeros(20, 20)
+        x = np.linspace(0, self.len_workspace, 20)
+        y = np.linspace(0, self.len_workspace, 20)
         X, Y = np.meshgrid(x, y)
         pos = np.empty(X.shape + (2,))
         pos[:, :, 0] = X; pos[:, :, 1] = Y
@@ -87,7 +87,8 @@ class RobotTargetTrackingEnv(gym.GoalEnv):
             self.heatmap += rv.pdf(pos)
         #plt.contourf(X, Y, self.heatmap, cmap=cm.inferno)            
         #plt.show()
-        true_obs = self.model(self.heatmap.unsqueeze(0).unsqueeze(0).float()).squeeze()
+        #true_obs = self.model(self.heatmap.unsqueeze(0).unsqueeze(0).float()).squeeze()
+        true_obs = self.heatmap.flatten()
 
         self.robot_movement_x = []
         self.robot_movement_y = []
@@ -133,9 +134,9 @@ class RobotTargetTrackingEnv(gym.GoalEnv):
         self.x_list.append(float(self.true_targets_pos[0, 0]))
         self.y_list.append(float(self.true_targets_pos[0, 1]))
 
-        self.heatmap = torch.zeros(256, 256)
-        x = np.linspace(0, self.len_workspace, 256)
-        y = np.linspace(0, self.len_workspace, 256)
+        self.heatmap = torch.zeros(20, 20)
+        x = np.linspace(0, self.len_workspace, 20)
+        y = np.linspace(0, self.len_workspace, 20)
         X, Y = np.meshgrid(x, y)
         pos = np.empty(X.shape + (2,))
         pos[:, :, 0] = X; pos[:, :, 1] = Y
@@ -144,7 +145,8 @@ class RobotTargetTrackingEnv(gym.GoalEnv):
             self.heatmap += rv.pdf(pos)
         #plt.contourf(X, Y, self.heatmap, cmap=cm.inferno)            
         #plt.show()
-        true_obs = self.model(self.heatmap.unsqueeze(0).unsqueeze(0).float()).squeeze()
+        #true_obs = self.model(self.heatmap.unsqueeze(0).unsqueeze(0).float()).squeeze()
+        true_obs = self.heatmap.flatten()
 
         done = False
         reward = None
@@ -185,18 +187,19 @@ class RobotTargetTrackingEnv(gym.GoalEnv):
             if(self.sensors_pos[index, 1] <= 0):
                 self.sensors_pos[index, 1] = (-self.sensors_pos[index, 1] + 1)      
 
-        self.heatmap = torch.zeros(256, 256)
-        x = np.linspace(0, self.len_workspace, 256)
-        y = np.linspace(0, self.len_workspace, 256)
+        self.heatmap = torch.zeros(20, 20)
+        x = np.linspace(0, self.len_workspace, 20)
+        y = np.linspace(0, self.len_workspace, 20)
         X, Y = np.meshgrid(x, y)
         pos = np.empty(X.shape + (2,))
         pos[:, :, 0] = X; pos[:, :, 1] = Y
         for index in range(0, self.num_targets):
             rv = multivariate_normal(self.estimated_targets_mean[index], self.estimated_targets_var[index])
             self.heatmap += rv.pdf(pos)
-        plt.contourf(X, Y, self.heatmap, cmap=cm.inferno)            
-        plt.savefig("/home/arpitdec5/Desktop/heatmap.png")
-        true_obs = self.model(self.heatmap.unsqueeze(0).unsqueeze(0).float()).squeeze()
+        #plt.contourf(X, Y, self.heatmap, cmap=cm.inferno)            
+        #plt.savefig("/home/arpitdec5/Desktop/heatmap.png")
+        #true_obs = self.model(self.heatmap.unsqueeze(0).unsqueeze(0).float()).squeeze()
+        true_obs = self.heatmap.flatten()
 
         self.state = torch.cat((self.sensors_pos[0], torch.tensor(true_obs).float()))
         self.observation_space = spaces.Box(-np.inf, np.inf, shape=self.state.shape, dtype='float32')

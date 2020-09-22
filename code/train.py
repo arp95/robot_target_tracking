@@ -33,9 +33,9 @@ env.env_parametrization()
 env.reset()
 
 # constants
-lr = 0.0001
+lr = 0.0005
 epochs = 1000
-iters = 50
+iters = 75
 
 # create TD3 object
 state_dim = env.observation_space.shape[0]
@@ -63,7 +63,14 @@ for epoch in range(0, epochs):
 
     # update policy
     policy.update(replay_buffer, iter, 100, 0.99, 0.99, 0.2, 2)
+
+    # save actor and critic models
+    if(epoch > 600 and epoch%10==0):
+        policy.save("/home/arpitdec5/Desktop/robot_target_tracking/", "model")
+
+    # print reward
     print()
+    print("Epoch: " + str(epoch))
     print("Reward: " + str(ep_reward))
     print()
     ep_reward = 0
