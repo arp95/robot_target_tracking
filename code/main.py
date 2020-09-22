@@ -70,7 +70,6 @@ def get_state(state):
 for epoch in range(0, EPOCHS):
     discrete_state = env.reset()
     state = get_state(discrete_state.numpy())
-    print(env.action_space.high)
     done = False
     while not done:
         if(np.random.random() > epsilon):

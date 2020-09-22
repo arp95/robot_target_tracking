@@ -23,6 +23,7 @@ import matplotlib.cm as cm
 from matplotlib.patches import Ellipse
 import matplotlib.transforms as transforms
 from math import pi, cos, sin
+from scipy.stats import multivariate_normal
 
 
 # OpenAI gym environment class
@@ -75,15 +76,18 @@ class RobotTargetTrackingEnv(gym.GoalEnv):
             for index in range(0, self.num_targets):
                 self.target_motion_omegas[index] = 33
 
-        self.heatmap = torch.zeros(self.len_workspace, self.len_workspace)
+        self.heatmap = torch.zeros(256, 256)
+        x = np.linspace(0, self.len_workspace, 256)
+        y = np.linspace(0, self.len_workspace, 256)
+        X, Y = np.meshgrid(x, y)
+        pos = np.empty(X.shape + (2,))
+        pos[:, :, 0] = X; pos[:, :, 1] = Y
         for index in range(0, self.num_targets):
-            x, y = self.get_correlated_dataset(500, self.estimated_targets_var[index].numpy(), (float(self.estimated_targets_mean[index, 0]), float(self.estimated_targets_mean[index, 1])), (2, 2))
-            for index1 in range(0, len(x)):
-                if(x[index1] > 1 and x[index1] < (self.len_workspace-1) and y[index1] > 1 and y[index1] < (self.len_workspace-1)):
-                    self.heatmap[self.len_workspace - int(y[index1]), int(x[index1])] += 1
-        self.heatmap = torch.nn.functional.interpolate(self.heatmap.unsqueeze(0).unsqueeze(0), (224, 224), mode='bilinear')
-        #torchvision.utils.save_image(self.heatmap, "/home/arpitdec5/Desktop/s1/image1.png")
-        true_obs = self.model(self.heatmap).squeeze()
+            rv = multivariate_normal(self.estimated_targets_mean[index], self.estimated_targets_var[index])
+            self.heatmap += rv.pdf(pos)
+        #plt.contourf(X, Y, self.heatmap, cmap=cm.inferno)            
+        #plt.show()
+        true_obs = self.model(self.heatmap.unsqueeze(0).unsqueeze(0).float()).squeeze()
 
         self.robot_movement_x = []
         self.robot_movement_y = []
@@ -129,15 +133,18 @@ class RobotTargetTrackingEnv(gym.GoalEnv):
         self.x_list.append(float(self.true_targets_pos[0, 0]))
         self.y_list.append(float(self.true_targets_pos[0, 1]))
 
-        self.heatmap = torch.zeros(self.len_workspace, self.len_workspace)
+        self.heatmap = torch.zeros(256, 256)
+        x = np.linspace(0, self.len_workspace, 256)
+        y = np.linspace(0, self.len_workspace, 256)
+        X, Y = np.meshgrid(x, y)
+        pos = np.empty(X.shape + (2,))
+        pos[:, :, 0] = X; pos[:, :, 1] = Y
         for index in range(0, self.num_targets):
-            x, y = self.get_correlated_dataset(500, self.estimated_targets_var[index].numpy(), (float(self.estimated_targets_mean[index, 0]), float(self.estimated_targets_mean[index, 1])), (2, 2))
-            for index1 in range(0, len(x)):
-                if(x[index1] > 1 and x[index1] < (self.len_workspace-1) and y[index1] > 1 and y[index1] < (self.len_workspace-1)):
-                    self.heatmap[self.len_workspace - int(y[index1]), int(x[index1])] += 1
-        self.heatmap = torch.nn.functional.interpolate(self.heatmap.unsqueeze(0).unsqueeze(0), (224, 224), mode='bilinear')
-        #torchvision.utils.save_image(self.heatmap, "/home/arpitdec5/Desktop/s1/image" + str(self.time_step) + ".png")
-        true_obs = self.model(self.heatmap).squeeze()
+            rv = multivariate_normal(self.estimated_targets_mean[index], self.estimated_targets_var[index])
+            self.heatmap += rv.pdf(pos)
+        #plt.contourf(X, Y, self.heatmap, cmap=cm.inferno)            
+        #plt.show()
+        true_obs = self.model(self.heatmap.unsqueeze(0).unsqueeze(0).float()).squeeze()
 
         done = False
         reward = None
@@ -178,14 +185,18 @@ class RobotTargetTrackingEnv(gym.GoalEnv):
             if(self.sensors_pos[index, 1] <= 0):
                 self.sensors_pos[index, 1] = (-self.sensors_pos[index, 1] + 1)      
 
-        self.heatmap = torch.zeros(self.len_workspace, self.len_workspace)
+        self.heatmap = torch.zeros(256, 256)
+        x = np.linspace(0, self.len_workspace, 256)
+        y = np.linspace(0, self.len_workspace, 256)
+        X, Y = np.meshgrid(x, y)
+        pos = np.empty(X.shape + (2,))
+        pos[:, :, 0] = X; pos[:, :, 1] = Y
         for index in range(0, self.num_targets):
-            x, y = self.get_correlated_dataset(500, self.estimated_targets_var[index].numpy(), (float(self.estimated_targets_mean[index, 0]), float(self.estimated_targets_mean[index, 1])), (2, 2))
-            for index1 in range(0, len(x)):
-                if(x[index1] > 1 and x[index1] < (self.len_workspace-1) and y[index1] > 1 and y[index1] < (self.len_workspace-1)):
-                    self.heatmap[self.len_workspace - int(y[index1]), int(x[index1])] += 1
-        self.heatmap = torch.nn.functional.interpolate(self.heatmap.unsqueeze(0).unsqueeze(0), (224, 224), mode='bilinear')
-        true_obs = self.model(self.heatmap).squeeze()
+            rv = multivariate_normal(self.estimated_targets_mean[index], self.estimated_targets_var[index])
+            self.heatmap += rv.pdf(pos)
+        plt.contourf(X, Y, self.heatmap, cmap=cm.inferno)            
+        plt.savefig("/home/arpitdec5/Desktop/heatmap.png")
+        true_obs = self.model(self.heatmap.unsqueeze(0).unsqueeze(0).float()).squeeze()
 
         self.state = torch.cat((self.sensors_pos[0], torch.tensor(true_obs).float()))
         self.observation_space = spaces.Box(-np.inf, np.inf, shape=self.state.shape, dtype='float32')
