@@ -122,7 +122,7 @@ class RobotTargetTrackingEnv(gym.GoalEnv):
             Function to update the environment
         """
         action = np.clip(action[0], self.action_space.low, self.action_space.high)
-        #self._set_action(action)
+        self._set_action(action)
 
         self.time_step = self.time_step + 1
         self.update_true_targets_pos()
