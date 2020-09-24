@@ -8,6 +8,9 @@ Lifeng Zhou
 
 ### Results
 
+Cumulative reward vs Episodes curve (Actor-critic model training)
+![](outputs/reward.png) 
+
 Performance of Q-Learning Algorithm (Episodes=30000, LR=0.1, DISCOUNT=0.95, EPSILON=0.5)
 ![](outputs/qlearning_reward.png)
 
