@@ -8,6 +8,9 @@ Lifeng Zhou
 
 ### Results
 
+Robot path (after training Actor-critic model)
+![](outputs/7.png) 
+
 Cumulative reward vs Episodes curve (Actor-critic model training)
 ![](outputs/reward.png) 
 
