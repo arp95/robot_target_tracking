@@ -85,9 +85,6 @@ class RobotTargetTrackingEnv(gym.GoalEnv):
         for index in range(0, self.num_targets):
             rv = multivariate_normal(self.estimated_targets_mean[index], self.estimated_targets_var[index])
             self.heatmap += rv.pdf(pos)
-        #plt.contourf(X, Y, self.heatmap, cmap=cm.inferno)            
-        #plt.show()
-        #true_obs = self.model(self.heatmap.unsqueeze(0).unsqueeze(0).float()).squeeze()
         true_obs = self.heatmap.flatten()
 
         self.robot_movement_x = []
@@ -143,9 +140,6 @@ class RobotTargetTrackingEnv(gym.GoalEnv):
         for index in range(0, self.num_targets):
             rv = multivariate_normal(self.estimated_targets_mean[index], self.estimated_targets_var[index])
             self.heatmap += rv.pdf(pos)
-        #plt.contourf(X, Y, self.heatmap, cmap=cm.inferno)            
-        #plt.show()
-        #true_obs = self.model(self.heatmap.unsqueeze(0).unsqueeze(0).float()).squeeze()
         true_obs = self.heatmap.flatten()
 
         done = False
@@ -196,9 +190,6 @@ class RobotTargetTrackingEnv(gym.GoalEnv):
         for index in range(0, self.num_targets):
             rv = multivariate_normal(self.estimated_targets_mean[index], self.estimated_targets_var[index])
             self.heatmap += rv.pdf(pos)
-        #plt.contourf(X, Y, self.heatmap, cmap=cm.inferno)            
-        #plt.savefig("/home/arpitdec5/Desktop/heatmap.png")
-        #true_obs = self.model(self.heatmap.unsqueeze(0).unsqueeze(0).float()).squeeze()
         true_obs = self.heatmap.flatten()
 
         self.state = torch.cat((self.sensors_pos[0], torch.tensor(true_obs).float()))
@@ -223,33 +214,20 @@ class RobotTargetTrackingEnv(gym.GoalEnv):
         pos = np.empty(X.shape + (2,))
         pos[:, :, 0] = X; pos[:, :, 1] = Y
         plt.cla()
-        #fig, ax_nstd = plt.subplots(figsize=(8, 8))
-        #ax_nstd.axvline(c='grey', lw=1)
-        #ax_nstd.axhline(c='grey', lw=1)
+        plt.title("Time step = " + str(self.time_step))
         plt.xlabel("x")
         plt.ylabel("y")
         plt.xlim(0, self.len_workspace)
         plt.ylim(0, self.len_workspace)
         plt.contourf(X, Y, self.heatmap, cmap=cm.inferno)
-
-        """
-        for index in range(0, self.num_targets):
-            x, y = self.get_correlated_dataset(500, self.estimated_targets_var[index].numpy(), (float(self.estimated_targets_mean[index, 0]), float(self.estimated_targets_mean[index, 1])), (2, 2))
-            self.confidence_ellipse(x, y, ax_nstd, n_std=1, edgecolor='firebrick')
-            ax_nstd.scatter(float(self.estimated_targets_mean[index, 0]), float(self.estimated_targets_mean[index, 1]), c='b', s=1)
-            ax_nstd.legend()
-            plt.scatter(float(self.true_targets_pos[index, 0]), float(self.true_targets_pos[index, 1]), color='b', marker='*')
-            plt.scatter([float(self.estimated_targets_mean[index, 0])], [float(self.estimated_targets_mean[index, 1])], color='b', marker="s")
-            plt.plot([float(self.sensors_pos[0, 0]), float(self.estimated_targets_mean[index, 0])], [float(self.sensors_pos[0, 1]), float(self.estimated_targets_mean[index, 1])], color='r')
+        plt.plot(self.x_list, self.y_list, 'b--')
+        plt.plot(self.x_list[len(self.x_list) - 1], self.y_list[len(self.y_list) - 1], 'o', c='b', marker='*')
         if(len(self.robot_movement_x) < 8):
             plt.plot(self.robot_movement_x, self.robot_movement_y, 'r--')
         else:
             plt.plot(self.robot_movement_x[-8:], self.robot_movement_y[-8:], 'r--')
-        plt.plot(self.x_list, self.y_list, 'b--')
-        plt.scatter(float(self.sensors_pos[0, 0]), float(self.sensors_pos[0, 1]), color='r', marker='D') 
-        """
+        plt.scatter(self.robot_movement_x[len(self.robot_movement_x) - 1], self.robot_movement_y[len(self.robot_movement_y) - 1], color='r', marker='D')
         plt.savefig("/home/arpitdec5/Desktop/robot_target_tracking/s2/" + str(self.time_step) + ".png")
-        #torchvision.utils.save_image(self.heatmap, "/home/arpitdec5/Desktop/robot_target_tracking/s1/" + str(self.time_step) + ".png")
         #plt.show()
 
 
