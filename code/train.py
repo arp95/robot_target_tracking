@@ -33,7 +33,7 @@ env.env_parametrization()
 env.reset()
 
 # constants
-lr = 0.0005
+lr = 0.0001
 epochs = 1000
 iters = 75
 
@@ -46,6 +46,8 @@ replay_buffer = ReplayBuffer(state_dim=state_dim, action_dim=action_dim)
 mean_reward, ep_reward = 0, 0
 
 # training
+e = []
+r = []
 for epoch in range(0, epochs):
     state = env.reset()
     for iter in range(0, iters):
@@ -73,4 +75,13 @@ for epoch in range(0, epochs):
     print("Epoch: " + str(epoch))
     print("Reward: " + str(ep_reward))
     print()
+    e.append(epoch)
+    r.append(ep_reward)
     ep_reward = 0
+
+
+# plot epoch vs reward curve
+plt.xlabel("Episodes")
+plt.ylabel("Cumulative Reward")
+plt.plot(e, r)
+plt.savefig("/home/arpitdec5/Desktop/robot_target_tracking/reward.png")

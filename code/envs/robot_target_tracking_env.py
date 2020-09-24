@@ -217,15 +217,22 @@ class RobotTargetTrackingEnv(gym.GoalEnv):
         """ 
             Function for rendering the environment
         """
+        x = np.linspace(0, self.len_workspace, 20)
+        y = np.linspace(0, self.len_workspace, 20)
+        X, Y = np.meshgrid(x, y)
+        pos = np.empty(X.shape + (2,))
+        pos[:, :, 0] = X; pos[:, :, 1] = Y
         plt.cla()
-        fig, ax_nstd = plt.subplots(figsize=(8, 8))
-        ax_nstd.axvline(c='grey', lw=1)
-        ax_nstd.axhline(c='grey', lw=1)
+        #fig, ax_nstd = plt.subplots(figsize=(8, 8))
+        #ax_nstd.axvline(c='grey', lw=1)
+        #ax_nstd.axhline(c='grey', lw=1)
         plt.xlabel("x")
         plt.ylabel("y")
         plt.xlim(0, self.len_workspace)
         plt.ylim(0, self.len_workspace)
+        plt.contourf(X, Y, self.heatmap, cmap=cm.inferno)
 
+        """
         for index in range(0, self.num_targets):
             x, y = self.get_correlated_dataset(500, self.estimated_targets_var[index].numpy(), (float(self.estimated_targets_mean[index, 0]), float(self.estimated_targets_mean[index, 1])), (2, 2))
             self.confidence_ellipse(x, y, ax_nstd, n_std=1, edgecolor='firebrick')
@@ -240,8 +247,9 @@ class RobotTargetTrackingEnv(gym.GoalEnv):
             plt.plot(self.robot_movement_x[-8:], self.robot_movement_y[-8:], 'r--')
         plt.plot(self.x_list, self.y_list, 'b--')
         plt.scatter(float(self.sensors_pos[0, 0]), float(self.sensors_pos[0, 1]), color='r', marker='D') 
+        """
         plt.savefig("/home/arpitdec5/Desktop/robot_target_tracking/s2/" + str(self.time_step) + ".png")
-        torchvision.utils.save_image(self.heatmap, "/home/arpitdec5/Desktop/robot_target_tracking/s1/" + str(self.time_step) + ".png")
+        #torchvision.utils.save_image(self.heatmap, "/home/arpitdec5/Desktop/robot_target_tracking/s1/" + str(self.time_step) + ".png")
         #plt.show()
 
 
