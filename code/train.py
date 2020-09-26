@@ -33,9 +33,9 @@ env.env_parametrization()
 env.reset()
 
 # constants
-lr = 0.0001
+lr = 0.0005
 epochs = 1000
-iters = 75
+iters = 100
 
 # create TD3 object
 state_dim = env.observation_space.shape[0]
@@ -48,6 +48,9 @@ mean_reward, ep_reward = 0, 0
 # training
 e = []
 r = []
+m_e = []
+m_r = []
+mean_reward = 0
 for epoch in range(0, epochs):
     state = env.reset()
     for iter in range(0, iters):
@@ -68,7 +71,7 @@ for epoch in range(0, epochs):
 
     # save actor and critic models
     if(epoch > 600 and epoch%10==0):
-        policy.save("/home/arpitdec5/Desktop/robot_target_tracking/", "model")
+        policy.save("/home/arpitdec5/Desktop/robot_target_tracking/", "model_1")
 
     # print reward
     print()
@@ -79,9 +82,17 @@ for epoch in range(0, epochs):
     r.append(ep_reward)
     ep_reward = 0
 
+    # mean reward
+    if(epoch%50 == 0 and epoch > 0):
+        m_e.append(epoch)
+        m_r.append(mean_reward / 50.0)
+        mean_reward = 0
+
 
 # plot epoch vs reward curve
 plt.xlabel("Episodes")
-plt.ylabel("Cumulative Reward")
-plt.plot(e, r)
-plt.savefig("/home/arpitdec5/Desktop/robot_target_tracking/reward.png")
+plt.ylabel("Reward")
+plt.plot(e, r, c='blue', label='Cumulative Reward')
+plt.plot(m_e, m_r, c='orange', label='Mean Reward')
+plt.legend()
+plt.savefig("/home/arpitdec5/Desktop/robot_target_tracking/reward_1.png")
