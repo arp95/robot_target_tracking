@@ -11,8 +11,8 @@ Lifeng Zhou
 Robot path (after training Actor-critic model)
 ![](outputs/7.png) 
 
-Cumulative reward vs Episodes curve (Actor-critic model training)
-![](outputs/reward.png) 
+Reward vs Episodes curve (Actor-critic model training)
+![](outputs/reward_1.png) 
 
 Performance of Q-Learning Algorithm (Episodes=30000, LR=0.1, DISCOUNT=0.95, EPSILON=0.5)
 ![](outputs/qlearning_reward.png)
