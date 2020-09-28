@@ -148,7 +148,7 @@ def extended_kalman_filter(target_xhat_t, target_yhat_t, target_sigma_t, robots_
         (target_xhat_tplus1, target_yhat_tplus1, sigma_matrix_tplus1, x_true, y_true): the predicted target position      
     """
     # get z_true using true target motion
-    omega = 100
+    omega = 33
     sigma_z = 1.0
     x_true = 3*np.cos((t-1) / omega) + 9
     y_true = 3*np.sin((t-1) / omega) + 12
@@ -274,8 +274,7 @@ def update_robot_pos_ekf(robot_x, robot_y, target_x, target_y, var, prev_target_
             if(val < best_val):
                 best_val = val
                 best_action = (curr_robot_x, curr_robot_y)
-    print(best_val)
-    return (best_action[0], best_action[1])
+    return (best_action[0], best_action[1], -best_val)
 
 
 # choose optimal action
