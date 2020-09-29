@@ -24,7 +24,9 @@ class Actor(nn.Module):
     def forward(self, state):
         a = F.relu(self.l1(state))
         a = F.relu(self.l2(a))
-        a = torch.tanh(self.l3(a)) * self.max_action
+        a = self.l3(a)
+        a[:, 0] = torch.tanh(a[:, 0]) * self.max_action
+        a[:, 1] = torch.sigmoid(a[:, 1])
         return a
         
 class Critic(nn.Module):
@@ -33,7 +35,7 @@ class Critic(nn.Module):
         
         self.l1 = nn.Linear(state_dim + action_dim, 800)
         self.l2 = nn.Linear(800, 800)
-        self.l3 = nn.Linear(800, 1)
+        self.l3 = nn.Linear(800, action_dim)
         
     def forward(self, state, action):
         q = F.relu(self.l1(torch.cat([state, action], 1)))
@@ -85,7 +87,8 @@ class TD3(object):
             
             # Select next action according to target policy
             noise = torch.normal(0, policy_noise, action.shape).to(self.device)
-            next_action = (self.actor_target(next_state) + noise).clamp(-self.max_action, self.max_action)
+            next_action = (self.actor_target(next_state) + noise)
+            next_action[:, 0] = next_action[:, 0].clamp(-self.max_action, self.max_action)
             
             # Compute target Q-value
             target_Q1 = self.critic_1_target(next_state, next_action)

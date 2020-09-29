@@ -115,12 +115,11 @@ class RobotTargetTrackingEnv(gym.GoalEnv):
         self.observation_space = spaces.Box(-np.inf, np.inf, shape=self.state.shape, dtype='float32')
 
     
-    def step(self, action):
+    def step(self, action, step_size):
         """ 
             Function to update the environment
         """
-        action = np.clip(action[0], self.action_space.low, self.action_space.high)
-        self._set_action(action)
+        self._set_action(action, step_size)
 
         self.time_step = self.time_step + 1
         self.update_true_targets_pos()
@@ -373,12 +372,12 @@ class RobotTargetTrackingEnv(gym.GoalEnv):
         return self.posterior_map
 
     
-    def _set_action(self, action):
+    def _set_action(self, action, step_size):
         """
             Applies the given action to the sensor.
         """
         action = torch.tensor(action).float()
-        vector = self.step_size * torch.tensor([torch.cos(action), torch.sin(action)])
+        vector = step_size * torch.tensor([torch.cos(action), torch.sin(action)])
         sensor_pos = self.sensors_pos[0] + vector
         if(sensor_pos[0] >= self.len_workspace):
             sensor_pos[0] = self.sensors_pos[0, 0]

@@ -41,8 +41,8 @@ iters = 100
 state_dim = env.observation_space.shape[0]
 action_dim = env.action_space.shape[0]
 max_action = float(env.action_space.high[0])
-policy = TD3(lr, state_dim, action_dim, max_action)
-replay_buffer = ReplayBuffer(state_dim=state_dim, action_dim=action_dim)
+policy = TD3(lr, state_dim, 2, max_action)
+replay_buffer = ReplayBuffer(state_dim=state_dim, action_dim=2)
 mean_reward, ep_reward = 0, 0
 
 # training
@@ -54,11 +54,11 @@ mean_reward = 0
 for epoch in range(0, epochs):
     state = env.reset()
     for iter in range(0, iters):
-        action = policy.select_action(state) + torch.normal(0, 0.1, size=env.action_space.shape)
+        action, step_size = policy.select_action(state) + torch.normal(0, 0.1, size=env.action_space.shape)
         action = action.clamp(env.action_space.low.item(), env.action_space.high.item())
 
-        next_state, reward, done, reward_info = env.step(action)
-        replay_buffer.add((state, action, reward, next_state, np.float(done)))
+        next_state, reward, done, _ = env.step(action, step_size)
+        replay_buffer.add((state, torch.tensor([action, step_size]), reward, next_state, np.float(done)))
         state = next_state
 
         mean_reward += reward
