@@ -41,7 +41,7 @@ policy.load_actor("/home/arpitdec5/Desktop/robot_target_tracking/", "model")
 
 # eval loop
 state = env.reset()
-for iter in range(0, 100):
+for iter in range(0, 150):
     action, step_size = policy.select_action(state)
     next_state, reward, done, _ = env.step(action, step_size)
     state = next_state
