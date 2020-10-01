@@ -34,8 +34,8 @@ env.reset()
 
 # constants
 lr = 0.0001
-epochs = 6000
-iters = 150
+epochs = 3000
+iters = 500
 
 # create TD3 object
 state_dim = env.observation_space.shape[0]
@@ -92,6 +92,7 @@ for epoch in range(0, epochs):
 # plot epoch vs reward curve
 plt.xlabel("Episodes")
 plt.ylabel("Reward")
+plt.ylim(-100, 100)
 plt.plot(e, r, c='blue', label='Cumulative Reward')
 plt.plot(m_e, m_r, c='orange', label='Mean Reward')
 plt.legend()

@@ -37,11 +37,11 @@ state_dim = env.observation_space.shape[0]
 action_dim = env.action_space.shape[0]
 max_action = float(env.action_space.high[0])
 policy = TD3(0.0001, state_dim, 2, max_action)
-policy.load_actor("/home/arpitdec5/Desktop/robot_target_tracking/", "model")
+policy.load_actor("/home/arpitdec5/Desktop/robot_target_tracking/", "model_targets")
 
 # eval loop
 state = env.reset()
-for iter in range(0, 150):
+for iter in range(0, 500):
     action, step_size = policy.select_action(state)
     next_state, reward, done, _ = env.step(action, step_size)
     state = next_state
