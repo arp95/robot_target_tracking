@@ -1,37 +1,32 @@
 # Multi-robot Target Tracking
 
+[![Packagist](https://img.shields.io/packagist/l/doctrine/orm.svg)](LICENSE.md)
+---
 
-### Author
+
+### Authors
 Arpit Aggarwal
 Lifeng Zhou
 
 
+### Introduction to the Project
+Robot-target tracking is the task of localizing the targets by using mobile robots. The task is to determine an optimal robot trajectory to minimize the uncertainty in the targets position. First, the task was comparing the Extended Kalman Filter(EKF) and Bayesian Histogram(BH) techniques for creating a heatmap of the environment, where the bright region denoted the total uncertainty in the targets position. Next, the task was using RL technique to determine the optimal action to be taken by the robot to minimize the total uncertainty in the heatmap.
+
+
 ### Results
 
-Robot path (after training Actor-critic model)
+Actor-Critic Model Evaluation (robots=1, targets=1)
 ![](outputs/7.png) 
 
-Reward vs Episodes curve (Actor-critic model training)
+Actor-Critic Model Training (robots=1, targets=1)
 ![](outputs/reward_1.png) 
-
-Performance of Q-Learning Algorithm (Episodes=30000, LR=0.1, DISCOUNT=0.95, EPSILON=0.5)
-![](outputs/qlearning_reward.png)
-
-Greedy algorithm using EKF(Target moving slow)
-![](https://j.gifs.com/L7yk4X.gif)
-
-Greedy algorithm using EKF(Target moving fast)
-![](https://j.gifs.com/QnEp90.gif)
-
-Greedy algorithm using BH(Target moving slow)
-![](https://j.gifs.com/ZYQQOv.gif)
-
-Greedy algorithm using BH(Target moving fast)
-![](https://j.gifs.com/3QDDRr.gif)
-
-
-### Instructions for running the code
 
 
 ### Software Required
-To run the .py files, use Python 3. Standard Python 3 libraries like OpenCV, Numpy, scipy, and matplotlib are used.
+To run the .py files, use Python 3. Standard Python 3 libraries like OpenAI Gym, PyTorch, Numpy, and matplotlib are used.
+
+
+### Credits
+The following links were helpful for this project:
+1. https://github.com/ksengin/active-target-localization/
+2. https://ksengin.github.io/active-target-localization/
