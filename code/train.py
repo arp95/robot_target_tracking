@@ -33,9 +33,9 @@ env.env_parametrization()
 env.reset()
 
 # constants
-lr = 0.0001
-epochs = 3000
-iters = 500
+lr = 0.0005
+epochs = 2000
+iters = 200
 
 # create TD3 object
 state_dim = env.observation_space.shape[0]
@@ -50,6 +50,8 @@ e = []
 r = []
 m_e = []
 m_r = []
+g_e = []
+g_r = []
 mean_reward = 0
 for epoch in range(0, epochs):
     state = env.reset()
@@ -71,7 +73,7 @@ for epoch in range(0, epochs):
 
     # save actor and critic models
     if(epoch > 1000 and epoch%10==0):
-        policy.save("/home/arpitdec5/Desktop/robot_target_tracking/", "model_targets")
+        policy.save("/home/arpitdec5/Desktop/robot_target_tracking/", "model_sensors_1_targets_1")
 
     # print reward
     print()
@@ -80,12 +82,14 @@ for epoch in range(0, epochs):
     print()
     e.append(epoch)
     r.append(ep_reward)
+    g_e.append(epoch)
+    g_r.append(42.52)
     ep_reward = 0
 
     # mean reward
-    if(epoch%100 == 0 and epoch > 0):
+    if(epoch%50 == 0 and epoch > 0):
         m_e.append(epoch)
-        m_r.append(mean_reward / 100.0)
+        m_r.append(mean_reward / 50.0)
         mean_reward = 0
 
 
@@ -95,5 +99,6 @@ plt.ylabel("Reward")
 plt.ylim(-100, 100)
 plt.plot(e, r, c='blue', label='Cumulative Reward')
 plt.plot(m_e, m_r, c='orange', label='Mean Reward')
+plt.plot(g_e, g_r, c='red', label='Greedy Algorithm')
 plt.legend()
-plt.savefig("/home/arpitdec5/Desktop/robot_target_tracking/reward_targets.png")
+plt.savefig("/home/arpitdec5/Desktop/robot_target_tracking/reward_sensors_1_targets_1.png")

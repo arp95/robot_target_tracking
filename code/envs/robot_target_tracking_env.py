@@ -164,7 +164,7 @@ class RobotTargetTrackingEnv(gym.GoalEnv):
         done = False
         reward = None
         reward, done = self.compute_reward()        
-        if(self.time_step > 500 or float(self.sensors_pos[0, 0]) <= 0 or float(self.sensors_pos[0, 1]) <= 0 or float(self.sensors_pos[0, 0]) >= self.len_workspace or float(self.sensors_pos[0, 1]) >= self.len_workspace):
+        if(self.time_step > 1000 or float(self.sensors_pos[0, 0]) <= 0 or float(self.sensors_pos[0, 1]) <= 0 or float(self.sensors_pos[0, 0]) >= self.len_workspace or float(self.sensors_pos[0, 1]) >= self.len_workspace):
             done = True
 
         self.state = torch.cat((self.sensors_pos[0], torch.tensor(true_obs).float()))
