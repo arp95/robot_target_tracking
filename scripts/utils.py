@@ -7,6 +7,48 @@ from matplotlib.patches import Ellipse
 import matplotlib.transforms as transforms
 from math import pi, cos, sin
 from random import random
+import math
+import torch
+
+
+def render_ekf(estimated_targets_mean, estimated_targets_var, time_step, x_list, y_list, robot_movement_x, robot_movement_y):
+    """ 
+        Function for rendering the environment
+    """
+    heatmap = torch.zeros(256, 256)
+    for index in range(0, 1):
+       x = np.linspace(0, 20, 256)
+       y = np.linspace(0, 20, 256)
+       X, Y = np.meshgrid(x, y)
+       pos = np.empty(X.shape + (2,))
+       pos[:, :, 0] = X; pos[:, :, 1] = Y
+       rv = multivariate_normal(estimated_targets_mean, estimated_targets_var)
+       heatmap += rv.pdf(pos)
+    x = np.linspace(0, 20, 256)
+    y = np.linspace(0, 20, 256)
+    X, Y = np.meshgrid(x, y)
+    plt.cla()
+    plt.title("Time step = " + str(time_step))
+    plt.xlabel("x")
+    plt.ylabel("y")
+    plt.xlim(0, 20)
+    plt.ylim(0, 20)
+    plt.contourf(X, Y, heatmap, cmap=cm.inferno)
+    plt.plot(x_list, y_list, 'b--')
+    plt.plot(x_list[len(x_list) - 1], y_list[len(y_list) - 1], 'o', c='b', marker='*')
+    #plt.plot(self.x2_list, self.y2_list, 'b--')
+    #plt.plot(self.x2_list[len(self.x2_list) - 1], self.y2_list[len(self.y2_list) - 1], 'o', c='b', marker='*')
+    #plt.plot(self.x3_list, self.y3_list, 'b--')
+    #plt.plot(self.x3_list[len(self.x3_list) - 1], self.y3_list[len(self.y3_list) - 1], 'o', c='b', marker='*')
+    #plt.plot(self.x4_list, self.y4_list, 'b--')
+    #plt.plot(self.x4_list[len(self.x4_list) - 1], self.y4_list[len(self.y4_list) - 1], 'o', c='b', marker='*')
+    if(len(robot_movement_x) < 8):
+        plt.plot(robot_movement_x, robot_movement_y, 'r--')
+    else:
+        plt.plot(robot_movement_x[-8:], robot_movement_y[-8:], 'r--')
+    plt.scatter(robot_movement_x[len(robot_movement_x) - 1], robot_movement_y[len(robot_movement_y) - 1], color='r', marker='D')
+    plt.savefig("/home/arpitdec5/Desktop/robot_target_tracking/s2/" + str(time_step) + ".png")
+    #plt.show()
 
 
 # plot the heatmap
@@ -150,8 +192,8 @@ def extended_kalman_filter(target_xhat_t, target_yhat_t, target_sigma_t, robots_
     # get z_true using true target motion
     omega = 33
     sigma_z = 1.0
-    x_true = 3*np.cos((t-1) / omega) + 9
-    y_true = 3*np.sin((t-1) / omega) + 12
+    x_true = 2*np.cos((t-1) / omega) + 10
+    y_true = 2*np.sin((t-1) / omega) + 12
     noise = sigma_z * np.random.randn(1000, 1)
         
     z_true = np.zeros((len(robots_x), 1))
@@ -263,18 +305,23 @@ def update_robot_pos_ekf(robot_x, robot_y, target_x, target_y, var, prev_target_
         (best_action[0], best_action[1]): updated robot position     
     """
     action_set = points_in_circle_np(radius, robot_x, robot_y)
-    best_val = np.log(np.linalg.det(var))
+    alpha_opt = -1
     best_action = (robot_x, robot_y)
     for action in action_set:
         curr_robot_x = action[0]
         curr_robot_y = action[1]
-        if(curr_robot_x >= 1 and curr_robot_x < (map_height-1) and curr_robot_y >= 1 and curr_robot_y < (map_width-1)):
-            _, _, var, _, _ = extended_kalman_filter(target_x, target_y, var, [curr_robot_x], [curr_robot_y], [1], t)
-            val = np.log(np.linalg.det(var))
-            if(val < best_val):
-                best_val = val
-                best_action = (curr_robot_x, curr_robot_y)
-    return (best_action[0], best_action[1], -best_val)
+        if(curr_robot_x >= 1 and curr_robot_x <= (map_height-1) and curr_robot_y >= 1 and curr_robot_y <= (map_width-1)):
+            v_i = ((robot_x - target_x)*(robot_x - target_x)) + ((robot_y - target_y)*(robot_y - target_y))
+            v_j = ((curr_robot_x - target_x)*(curr_robot_x - target_x)) + ((curr_robot_y - target_y)*(curr_robot_y - target_y))
+            m1 = (target_y - robot_y) / (target_x - robot_x + 1e-8)
+            m2 = (target_y - curr_robot_y) / (target_x - curr_robot_x + 1e-8)
+            angle1 = np.arctan2(m1-m2, 1+m1*m2)
+            angle2 = np.arctan2(m2-m1, 1+m1*m2)
+            value = max((v_i*v_j*np.sin(angle1)*np.sin(angle1)), (v_i*v_j*np.sin(angle2)*np.sin(angle2)))
+            if(value > alpha_opt):
+                alpha_opt = value
+                best_action = action
+    return (best_action[0], best_action[1], 0.0)
 
 
 # choose optimal action
