@@ -34,8 +34,8 @@ env.reset()
 
 # constants
 lr = 0.0005
-epochs = 2000
-iters = 300
+epochs = 4000
+iters = 600
 
 # create TD3 object
 state_dim = env.observation_space.shape[0]
@@ -73,7 +73,7 @@ for epoch in range(0, epochs):
 
     # save actor and critic models
     if(epoch > 1000 and epoch%10==0):
-        policy.save("/home/arpitdec5/Desktop/robot_target_tracking/", "model_sensors_1_targets_2")
+        policy.save("/home/arpitdec5/Desktop/robot_target_tracking/", "model_sensors_1_targets_4")
 
     # print reward
     print()
@@ -101,4 +101,4 @@ plt.plot(e, r, c='blue', label='Cumulative Reward')
 plt.plot(m_e, m_r, c='orange', label='Mean Reward')
 #plt.plot(g_e, g_r, c='red', label='Greedy Algorithm')
 plt.legend()
-plt.savefig("/home/arpitdec5/Desktop/robot_target_tracking/reward_sensors_1_targets_2.png")
+plt.savefig("/home/arpitdec5/Desktop/robot_target_tracking/reward_sensors_1_targets_4.png")
