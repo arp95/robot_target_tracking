@@ -15,11 +15,17 @@ Robot-target tracking is the task of localizing the targets by using mobile robo
 
 ### Results
 
-Actor-Critic Model Evaluation (robots=1, targets=1)
-![](outputs/7.png) 
-
 Actor-Critic Model Training (robots=1, targets=1)
-![](outputs/reward_1.png) 
+![](outputs/reward_sensors_1_targets_1.png) 
+
+Actor-Critic Model Training (robots=1, targets=2)
+![](outputs/reward_sensors_1_targets_2.png)
+
+Actor-Critic Model Training (robots=1, targets=3)
+![](outputs/reward_sensors_1_targets_3.png)
+
+Actor-Critic Model Training (robots=1, targets=4)
+![](outputs/reward_sensors_1_targets_4.png)
 
 
 ### Software Required
