@@ -18,7 +18,7 @@ robots_id = [1]
 map_height = 20
 map_width = 20
 stepsize_map = 0.1
-action_radius = 2
+action_radius = 4
 
 # variables
 x_g, y_g = np.mgrid[0:map_height:stepsize_map, 0:map_width:stepsize_map]
@@ -29,11 +29,13 @@ true_target_x = [x_true]
 true_target_y = [y_true]
 prev_target_x = x_true
 prev_target_y = y_true
+prev_robot_x = robots_x[0]
+prev_robot_y = robots_y[0]
 
 
 # estimate target position after each time step
 net_val = 0
-for t in range(2, 150):
+for t in range(2, 300):
 
     # update target position
     target_x_mean, target_y_mean, var, x_true, y_true = extended_kalman_filter(mean[0], mean[1], var, robots_x, robots_y, robots_id, t)
@@ -58,9 +60,12 @@ for t in range(2, 150):
     #plot_ellipse(x, y, mean, true_target_x, true_target_y, target_x_mean, target_y_mean, "/home/arpitdec5/Desktop/robot_target_tracking/s2/" + str(t) + ".png", robots_x[0], robots_y[0], robot_movement_x, robot_movement_y)
 
     # update robot position
-    robots_x[0], robots_y[0], val = update_robot_pos_ekf(robots_x[0], robots_y[0], target_x_mean, target_y_mean, var, prev_target_x, prev_target_y, action_radius, map_height, map_width, t+1)
-    #net_val += val
+    next_robot_x, next_robot_y, val = update_robot_pos_ekf(robots_x[0], robots_y[0], target_x_mean, target_y_mean, var, prev_target_x, prev_target_y, action_radius, map_height, map_width, t+1, prev_robot_x, prev_robot_y)
+    prev_robot_x = robots_x[0]
+    prev_robot_y = robots_y[0]
+    robots_x[0] = next_robot_x
+    robots_y[0] = next_robot_y
     prev_target_x = target_x_mean
     prev_target_y = target_y_mean
 
-print(net_val)
+print("Done")

@@ -65,17 +65,17 @@ def render(t, x_mesh, y_mesh, belief_map, x_target, y_target, robot_movement_x, 
         robot_movement_y: the list of robot paths y-coordinates
     """
     plt.cla()
-    plt.title("Greedy algorithm using BH(Target moving fast)")
+    plt.title("Stationary robot(Target moving fast)")
     plt.xlabel("x")
     plt.ylabel("y")
     plt.contourf(x_mesh, y_mesh, belief_map, cmap=cm.inferno)
-    plt.plot(x_target, y_target, 'b--')
+    plt.plot(x_target, y_target, 'b--', label='true target motion')
     plt.plot(x_target[len(x_target) - 1], y_target[len(y_target) - 1], 'o', c='b', marker='*')
     if(len(robot_movement_x) < 8):
         plt.plot(robot_movement_x, robot_movement_y, 'r--')
     else:
         plt.plot(robot_movement_x[-8:], robot_movement_y[-8:], 'r--')
-    plt.scatter(robot_movement_x[len(robot_movement_x) - 1], robot_movement_y[len(robot_movement_y) - 1], color='r', marker='D')
+    plt.scatter(robot_movement_x[len(robot_movement_x) - 1], robot_movement_y[len(robot_movement_y) - 1], color='r', marker='D', label='robot')
     plt.savefig("/home/arpitdec5/Desktop/robot_target_tracking/s1/" + str(t) + ".png")
     #plt.show()
 
@@ -119,8 +119,8 @@ def get_target_position(t, x_true, y_true):
         (x_true, y_true): the target position at next time step      
     """
     omega = 33
-    x_true = 3*np.cos((t-1) / omega) + 9
-    y_true = 3*np.sin((t-1) / omega) + 12
+    x_true = 2*np.cos((t-1) / omega) + 10
+    y_true = 2*np.sin((t-1) / omega) + 12
     return (x_true, y_true)
 
 
@@ -277,7 +277,7 @@ def points_in_circle_np(radius, x0=0, y0=0):
         Outputs: 
         points: the action set to be used for deciding the robot trajectory      
     """
-    thetas = [0.0, 30.0, 60.0, 90.0, 120.0, 150.0, 180.0, 210.0, 240.0, 270.0, 300.0, 330.0]
+    thetas = [0.0, 15.0, 30.0, 45.0, 60.0, 75.0, 90.0, 105.0, 120.0, 135.0, 150.0, 165.0, 180.0, 195.0, 210.0, 225.0, 240.0, 255.0, 270.0, 285.0, 300.0, 315.0, 330.0]
     points = []
     for theta in thetas:
         theta = (theta * pi) / 180.0
@@ -286,7 +286,7 @@ def points_in_circle_np(radius, x0=0, y0=0):
 
 
 # choose optimal action
-def update_robot_pos_ekf(robot_x, robot_y, target_x, target_y, var, prev_target_x, prev_target_y, radius, map_height, map_width, t):
+def update_robot_pos_ekf(robot_x, robot_y, target_x, target_y, var, prev_target_x, prev_target_y, radius, map_height, map_width, t, prev_robot_x, prev_robot_y):
     """
         Inputs:
         robot_x: the position of robot x-coordinate
@@ -305,27 +305,43 @@ def update_robot_pos_ekf(robot_x, robot_y, target_x, target_y, var, prev_target_
         (best_action[0], best_action[1]): updated robot position     
     """
     action_set = points_in_circle_np(radius, robot_x, robot_y)
-    alpha_opt = -1
+    alpha_opt = -1000000
     best_action = (robot_x, robot_y)
     for action in action_set:
         curr_robot_x = action[0]
         curr_robot_y = action[1]
         if(curr_robot_x >= 1 and curr_robot_x <= (map_height-1) and curr_robot_y >= 1 and curr_robot_y <= (map_width-1)):
-            v_i = ((robot_x - target_x)*(robot_x - target_x)) + ((robot_y - target_y)*(robot_y - target_y))
-            v_j = ((curr_robot_x - target_x)*(curr_robot_x - target_x)) + ((curr_robot_y - target_y)*(curr_robot_y - target_y))
-            m1 = (target_y - robot_y) / (target_x - robot_x + 1e-8)
-            m2 = (target_y - curr_robot_y) / (target_x - curr_robot_x + 1e-8)
-            angle1 = np.arctan2(m1-m2, 1+m1*m2)
-            angle2 = np.arctan2(m2-m1, 1+m1*m2)
-            value = max((v_i*v_j*np.sin(angle1)*np.sin(angle1)), (v_i*v_j*np.sin(angle2)*np.sin(angle2)))
-            if(value > alpha_opt):
-                alpha_opt = value
+            t_v_i = ((robot_x - target_x)*(robot_x - target_x)) + ((robot_y - target_y)*(robot_y - target_y))
+            t_v_j = ((curr_robot_x - target_x)*(curr_robot_x - target_x)) + ((curr_robot_y - target_y)*(curr_robot_y - target_y))
+            t_m1 = (target_y - robot_y) / (target_x - robot_x + 1e-9)
+            t_m2 = (target_y - curr_robot_y) / (target_x - curr_robot_x + 1e-9)
+            value = np.abs(t_m1*t_m2 + 1)
+            t_angle1 = np.arctan2(t_m1-t_m2, 1+t_m1*t_m2)
+            t_angle2 = np.arctan2(t_m2-t_m1, 1+t_m1*t_m2)
+            t_val = max((t_v_i*t_v_j*np.sin(t_angle1)*np.sin(t_angle1)), (t_v_i*t_v_j*np.sin(t_angle2)*np.sin(t_angle2)))
+            t1_v_i = ((prev_robot_x - prev_target_x)*(prev_robot_x - prev_target_x)) + ((prev_robot_y - prev_target_y)*(prev_robot_y - prev_target_y))
+            t1_v_j = ((robot_x - prev_target_x)*(robot_x - prev_target_x)) + ((robot_y - prev_target_y)*(robot_y - prev_target_y))
+            t1_m1 = (prev_target_y - prev_robot_y) / (prev_target_x - prev_robot_x + 1e-9)
+            t1_m2 = (prev_target_y - robot_y) / (prev_target_x - robot_x + 1e-9)
+            t1_angle1 = np.arctan2(t1_m1-t1_m2, 1+t1_m1*t1_m2)
+            t1_angle2 = np.arctan2(t1_m2-t1_m1, 1+t1_m1*t1_m2)
+            t1_val = max((t1_v_i*t1_v_j*np.sin(t1_angle1)*np.sin(t1_angle1)), (t1_v_i*t1_v_j*np.sin(t1_angle2)*np.sin(t1_angle2)))
+            t2_v_i = ((prev_robot_x - prev_target_x)*(prev_robot_x - prev_target_x)) + ((prev_robot_y - prev_target_y)*(prev_robot_y - prev_target_y))
+            t2_v_j = ((curr_robot_x - prev_target_x)*(curr_robot_x - prev_target_x)) + ((curr_robot_y - prev_target_y)*(curr_robot_y - prev_target_y))
+            t2_m1 = (prev_target_y - prev_robot_y) / (prev_target_x - prev_robot_x + 1e-9)
+            t2_m2 = (prev_target_y - curr_robot_y) / (prev_target_x - curr_robot_x + 1e-9)
+            t2_angle1 = np.arctan2(t2_m1-t2_m2, 1+t2_m1*t2_m2)
+            t2_angle2 = np.arctan2(t2_m2-t2_m1, 1+t2_m1*t2_m2)
+            t2_val = max((t2_v_i*t2_v_j*np.sin(t2_angle1)*np.sin(t2_angle1)), (t2_v_i*t2_v_j*np.sin(t2_angle2)*np.sin(t2_angle2)))
+            val = t1_val + t2_val + t_val
+            if(val > alpha_opt):
+                alpha_opt = val
                 best_action = action
-    return (best_action[0], best_action[1], 0.0)
+    return (best_action[0], best_action[1], value)
 
 
 # choose optimal action
-def update_robot_pos(robot_x, robot_y, target_x, target_y, prev_target_x, prev_target_y, radius, map_height, map_width):
+def update_robot_pos(robot_x, robot_y, target_x, target_y, prev_target_x, prev_target_y, radius, map_height, map_width, prev_robot_x, prev_robot_y):
     """
         Inputs:
         robot_x: the position of robot x-coordinate
@@ -342,7 +358,7 @@ def update_robot_pos(robot_x, robot_y, target_x, target_y, prev_target_x, prev_t
         (best_action[0], best_action[1]): updated robot position
     """
     action_set = points_in_circle_np(radius, robot_x, robot_y)
-    alpha_opt = 10000000
+    alpha_opt = -10000000
     dist_opt = 10000000
     best_action = (0, 0)
     for action in action_set:
@@ -351,10 +367,29 @@ def update_robot_pos(robot_x, robot_y, target_x, target_y, prev_target_x, prev_t
         if(curr_robot_x >= 1 and curr_robot_x < (map_height-1) and curr_robot_y >= 1 and curr_robot_y < (map_width-1)):
             m1 = (prev_target_y - robot_y) / (prev_target_x - robot_x + 1e-8)
             m2 = (target_y - curr_robot_y) / (target_x - curr_robot_x + 1e-8)
-            d1 = np.sqrt((target_x - robot_x)**2 + (target_y - robot_y)**2)
-            d2 = np.sqrt((target_x - curr_robot_x)**2 + (target_y - curr_robot_y)**2)
-            if(np.abs((m1 * m2) + 1) < alpha_opt):
-                alpha_opt = np.abs((m1 * m2) + 1)
-                dist_opt = np.abs((d1 / d2) - 1)
+            t_v_i = ((robot_x - target_x)*(robot_x - target_x)) + ((robot_y - target_y)*(robot_y - target_y))
+            t_v_j = ((curr_robot_x - target_x)*(curr_robot_x - target_x)) + ((curr_robot_y - target_y)*(curr_robot_y - target_y))
+            t_m1 = (target_y - robot_y) / (target_x - robot_x + 1e-9)
+            t_m2 = (target_y - curr_robot_y) / (target_x - curr_robot_x + 1e-9)
+            t_angle1 = np.arctan2(t_m1-t_m2, 1+t_m1*t_m2)
+            t_angle2 = np.arctan2(t_m2-t_m1, 1+t_m1*t_m2)
+            t_val = max((t_v_i*t_v_j*np.sin(t_angle1)*np.sin(t_angle1)), (t_v_i*t_v_j*np.sin(t_angle2)*np.sin(t_angle2)))
+            t1_v_i = ((prev_robot_x - prev_target_x)*(prev_robot_x - prev_target_x)) + ((prev_robot_y - prev_target_y)*(prev_robot_y - prev_target_y))
+            t1_v_j = ((robot_x - prev_target_x)*(robot_x - prev_target_x)) + ((robot_y - prev_target_y)*(robot_y - prev_target_y))
+            t1_m1 = (prev_target_y - prev_robot_y) / (prev_target_x - prev_robot_x + 1e-9)
+            t1_m2 = (prev_target_y - robot_y) / (prev_target_x - robot_x + 1e-9)
+            t1_angle1 = np.arctan2(t1_m1-t1_m2, 1+t1_m1*t1_m2)
+            t1_angle2 = np.arctan2(t1_m2-t1_m1, 1+t1_m1*t1_m2)
+            t1_val = max((t1_v_i*t1_v_j*np.sin(t1_angle1)*np.sin(t1_angle1)), (t1_v_i*t1_v_j*np.sin(t1_angle2)*np.sin(t1_angle2)))
+            t2_v_i = ((prev_robot_x - prev_target_x)*(prev_robot_x - prev_target_x)) + ((prev_robot_y - prev_target_y)*(prev_robot_y - prev_target_y))
+            t2_v_j = ((curr_robot_x - prev_target_x)*(curr_robot_x - prev_target_x)) + ((curr_robot_y - prev_target_y)*(curr_robot_y - prev_target_y))
+            t2_m1 = (prev_target_y - prev_robot_y) / (prev_target_x - prev_robot_x + 1e-9)
+            t2_m2 = (prev_target_y - curr_robot_y) / (prev_target_x - curr_robot_x + 1e-9)
+            t2_angle1 = np.arctan2(t2_m1-t2_m2, 1+t2_m1*t2_m2)
+            t2_angle2 = np.arctan2(t2_m2-t2_m1, 1+t2_m1*t2_m2)
+            t2_val = max((t2_v_i*t2_v_j*np.sin(t2_angle1)*np.sin(t2_angle1)), (t2_v_i*t2_v_j*np.sin(t2_angle2)*np.sin(t2_angle2)))
+            val = t1_val + t2_val + t_val
+            if(val > alpha_opt):
+                alpha_opt = val
                 best_action = action
     return (best_action[0], best_action[1])
