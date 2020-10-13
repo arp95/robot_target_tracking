@@ -11,7 +11,7 @@ import math
 import torch
 
 
-def render_ekf(estimated_targets_mean, estimated_targets_var, time_step, x_list, y_list, robot_movement_x, robot_movement_y):
+def render_ekf(estimated_targets_mean_1, estimated_targets_mean_2, estimated_targets_var_1, estimated_targets_var_2, time_step, x_list_1, y_list_1, x_list_2, y_list_2, robot_movement_x, robot_movement_y):
     """ 
         Function for rendering the environment
     """
@@ -22,8 +22,10 @@ def render_ekf(estimated_targets_mean, estimated_targets_var, time_step, x_list,
        X, Y = np.meshgrid(x, y)
        pos = np.empty(X.shape + (2,))
        pos[:, :, 0] = X; pos[:, :, 1] = Y
-       rv = multivariate_normal(estimated_targets_mean, estimated_targets_var)
-       heatmap += rv.pdf(pos)
+       rv_1 = multivariate_normal(estimated_targets_mean_1, estimated_targets_var_1)
+       rv_2 = multivariate_normal(estimated_targets_mean_2, estimated_targets_var_2)
+       heatmap += rv_1.pdf(pos)
+       heatmap += rv_2.pdf(pos)
     x = np.linspace(0, 20, 256)
     y = np.linspace(0, 20, 256)
     X, Y = np.meshgrid(x, y)
@@ -34,8 +36,10 @@ def render_ekf(estimated_targets_mean, estimated_targets_var, time_step, x_list,
     plt.xlim(0, 20)
     plt.ylim(0, 20)
     plt.contourf(X, Y, heatmap, cmap=cm.inferno)
-    plt.plot(x_list, y_list, 'b--')
-    plt.plot(x_list[len(x_list) - 1], y_list[len(y_list) - 1], 'o', c='b', marker='*')
+    plt.plot(x_list_1, y_list_1, 'b--')
+    plt.plot(x_list_2, y_list_2, 'b--')
+    plt.plot(x_list_1[len(x_list_1) - 1], y_list_1[len(y_list_1) - 1], 'o', c='b', marker='*')
+    plt.plot(x_list_2[len(x_list_2) - 1], y_list_2[len(y_list_2) - 1], 'o', c='b', marker='*')
     #plt.plot(self.x2_list, self.y2_list, 'b--')
     #plt.plot(self.x2_list[len(self.x2_list) - 1], self.y2_list[len(self.y2_list) - 1], 'o', c='b', marker='*')
     #plt.plot(self.x3_list, self.y3_list, 'b--')
@@ -176,7 +180,7 @@ def get_correlated_dataset(n, dependency, mu, scale):
 
 
 # code for the filter
-def extended_kalman_filter(target_xhat_t, target_yhat_t, target_sigma_t, robots_x, robots_y, robots_id, t):
+def extended_kalman_filter(target_xhat_t, target_yhat_t, target_sigma_t, robots_x, robots_y, robots_id, t, x, y):
     """
         Inputs:
         target_xhat_t: the estimated target position x-coordinate
@@ -192,8 +196,8 @@ def extended_kalman_filter(target_xhat_t, target_yhat_t, target_sigma_t, robots_
     # get z_true using true target motion
     omega = 33
     sigma_z = 1.0
-    x_true = 2*np.cos((t-1) / omega) + 10
-    y_true = 2*np.sin((t-1) / omega) + 12
+    x_true = 2*np.cos((t-1) / omega) + x
+    y_true = 2*np.sin((t-1) / omega) + y
     noise = sigma_z * np.random.randn(1000, 1)
         
     z_true = np.zeros((len(robots_x), 1))
@@ -309,34 +313,36 @@ def update_robot_pos_ekf(robot_x, robot_y, target_x, target_y, var, prev_target_
     best_action = (robot_x, robot_y)
     for action in action_set:
         curr_robot_x = action[0]
-        curr_robot_y = action[1]
-        if(curr_robot_x >= 1 and curr_robot_x <= (map_height-1) and curr_robot_y >= 1 and curr_robot_y <= (map_width-1)):
-            t_v_i = ((robot_x - target_x)*(robot_x - target_x)) + ((robot_y - target_y)*(robot_y - target_y))
-            t_v_j = ((curr_robot_x - target_x)*(curr_robot_x - target_x)) + ((curr_robot_y - target_y)*(curr_robot_y - target_y))
-            t_m1 = (target_y - robot_y) / (target_x - robot_x + 1e-9)
-            t_m2 = (target_y - curr_robot_y) / (target_x - curr_robot_x + 1e-9)
-            value = np.abs(t_m1*t_m2 + 1)
-            t_angle1 = np.arctan2(t_m1-t_m2, 1+t_m1*t_m2)
-            t_angle2 = np.arctan2(t_m2-t_m1, 1+t_m1*t_m2)
-            t_val = max((t_v_i*t_v_j*np.sin(t_angle1)*np.sin(t_angle1)), (t_v_i*t_v_j*np.sin(t_angle2)*np.sin(t_angle2)))
-            t1_v_i = ((prev_robot_x - prev_target_x)*(prev_robot_x - prev_target_x)) + ((prev_robot_y - prev_target_y)*(prev_robot_y - prev_target_y))
-            t1_v_j = ((robot_x - prev_target_x)*(robot_x - prev_target_x)) + ((robot_y - prev_target_y)*(robot_y - prev_target_y))
-            t1_m1 = (prev_target_y - prev_robot_y) / (prev_target_x - prev_robot_x + 1e-9)
-            t1_m2 = (prev_target_y - robot_y) / (prev_target_x - robot_x + 1e-9)
-            t1_angle1 = np.arctan2(t1_m1-t1_m2, 1+t1_m1*t1_m2)
-            t1_angle2 = np.arctan2(t1_m2-t1_m1, 1+t1_m1*t1_m2)
-            t1_val = max((t1_v_i*t1_v_j*np.sin(t1_angle1)*np.sin(t1_angle1)), (t1_v_i*t1_v_j*np.sin(t1_angle2)*np.sin(t1_angle2)))
-            t2_v_i = ((prev_robot_x - prev_target_x)*(prev_robot_x - prev_target_x)) + ((prev_robot_y - prev_target_y)*(prev_robot_y - prev_target_y))
-            t2_v_j = ((curr_robot_x - prev_target_x)*(curr_robot_x - prev_target_x)) + ((curr_robot_y - prev_target_y)*(curr_robot_y - prev_target_y))
-            t2_m1 = (prev_target_y - prev_robot_y) / (prev_target_x - prev_robot_x + 1e-9)
-            t2_m2 = (prev_target_y - curr_robot_y) / (prev_target_x - curr_robot_x + 1e-9)
-            t2_angle1 = np.arctan2(t2_m1-t2_m2, 1+t2_m1*t2_m2)
-            t2_angle2 = np.arctan2(t2_m2-t2_m1, 1+t2_m1*t2_m2)
-            t2_val = max((t2_v_i*t2_v_j*np.sin(t2_angle1)*np.sin(t2_angle1)), (t2_v_i*t2_v_j*np.sin(t2_angle2)*np.sin(t2_angle2)))
-            val = t1_val + t2_val + t_val
-            if(val > alpha_opt):
-                alpha_opt = val
-                best_action = action
+        curr_robot_y = action[1] 
+        val = 0
+        for index in range(0, len(target_x)):
+            if(curr_robot_x >= 1 and curr_robot_x <= (map_height-1) and curr_robot_y >= 1 and curr_robot_y <= (map_width-1)):
+                t_v_i = ((robot_x - target_x[index])*(robot_x - target_x[index])) + ((robot_y - target_y[index])*(robot_y - target_y[index]))
+                t_v_j = ((curr_robot_x - target_x[index])*(curr_robot_x - target_x[index])) + ((curr_robot_y - target_y[index])*(curr_robot_y - target_y[index]))
+                t_m1 = (target_y[index] - robot_y) / (target_x[index] - robot_x + 1e-9)
+                t_m2 = (target_y[index] - curr_robot_y) / (target_x[index] - curr_robot_x + 1e-9)
+                value = np.abs(t_m1*t_m2 + 1)
+                t_angle1 = np.arctan2(t_m1-t_m2, 1+t_m1*t_m2)
+                t_angle2 = np.arctan2(t_m2-t_m1, 1+t_m1*t_m2)
+                t_val = max((t_v_i*t_v_j*np.sin(t_angle1)*np.sin(t_angle1)), (t_v_i*t_v_j*np.sin(t_angle2)*np.sin(t_angle2)))
+                t1_v_i = ((prev_robot_x - prev_target_x[index])*(prev_robot_x - prev_target_x[index])) + ((prev_robot_y - prev_target_y[index])*(prev_robot_y - prev_target_y[index]))
+                t1_v_j = ((robot_x - prev_target_x[index])*(robot_x - prev_target_x[index])) + ((robot_y - prev_target_y[index])*(robot_y - prev_target_y[index]))
+                t1_m1 = (prev_target_y[index] - prev_robot_y) / (prev_target_x[index] - prev_robot_x + 1e-9)
+                t1_m2 = (prev_target_y[index] - robot_y) / (prev_target_x[index] - robot_x + 1e-9)
+                t1_angle1 = np.arctan2(t1_m1-t1_m2, 1+t1_m1*t1_m2)
+                t1_angle2 = np.arctan2(t1_m2-t1_m1, 1+t1_m1*t1_m2)
+                t1_val = max((t1_v_i*t1_v_j*np.sin(t1_angle1)*np.sin(t1_angle1)), (t1_v_i*t1_v_j*np.sin(t1_angle2)*np.sin(t1_angle2)))
+                t2_v_i = ((prev_robot_x - prev_target_x[index])*(prev_robot_x - prev_target_x[index])) + ((prev_robot_y - prev_target_y[index])*(prev_robot_y - prev_target_y[index]))
+                t2_v_j = ((curr_robot_x - prev_target_x[index])*(curr_robot_x - prev_target_x[index])) + ((curr_robot_y - prev_target_y[index])*(curr_robot_y - prev_target_y[index]))
+                t2_m1 = (prev_target_y[index] - prev_robot_y) / (prev_target_x[index] - prev_robot_x + 1e-9)
+                t2_m2 = (prev_target_y[index] - curr_robot_y) / (prev_target_x[index] - curr_robot_x + 1e-9)
+                t2_angle1 = np.arctan2(t2_m1-t2_m2, 1+t2_m1*t2_m2)
+                t2_angle2 = np.arctan2(t2_m2-t2_m1, 1+t2_m1*t2_m2)
+                t2_val = max((t2_v_i*t2_v_j*np.sin(t2_angle1)*np.sin(t2_angle1)), (t2_v_i*t2_v_j*np.sin(t2_angle2)*np.sin(t2_angle2)))
+                val += t1_val + t2_val + t_val
+        if(val > alpha_opt):
+           alpha_opt = val
+           best_action = action
     return (best_action[0], best_action[1], value)
 
 
