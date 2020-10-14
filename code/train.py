@@ -54,7 +54,7 @@ g_e = []
 g_r = []
 mean_reward = 0
 for epoch in range(0, epochs):
-    state = env.reset()
+    state, _, _, _, _ = env.reset()
     for iter in range(0, iters):
         action, step_size = policy.select_action(state) + torch.normal(0, 0.1, size=env.action_space.shape)
         action = action.clamp(env.action_space.low.item(), env.action_space.high.item())
@@ -82,14 +82,12 @@ for epoch in range(0, epochs):
     print()
     e.append(epoch)
     r.append(ep_reward)
-    g_e.append(epoch)
-    g_r.append(42.52)
     ep_reward = 0
 
     # mean reward
-    if(epoch%50 == 0 and epoch > 0):
+    if(epoch%50==0 and epoch>0):
         m_e.append(epoch)
-        m_r.append(mean_reward / 50.0)
+        m_r.append(mean_reward/50.0)
         mean_reward = 0
 
 

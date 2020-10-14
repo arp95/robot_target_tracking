@@ -345,7 +345,7 @@ def update_robot_pos_ekf(robot_x, robot_y, target_x, target_y, var, prev_target_
         if(val > alpha_opt):
            alpha_opt = val
            best_action = action
-    return (best_action[0], best_action[1], value)
+    return (best_action[0], best_action[1], 0)
 
 
 # choose optimal action

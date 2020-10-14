@@ -62,22 +62,14 @@ class RobotTargetTrackingEnv(gym.GoalEnv):
         self.y4_list = []
         self.time_step = 1
         self.num_targets = num_targets
-        self.true_targets_pos = (torch.rand(self.num_targets, 2) * self.len_workspace)
+        self.true_targets_radii = torch.rand(self.num_targets)*5.0+2.0
+        self.true_targets_pos = (torch.rand(self.num_targets, 2)*self.len_workspace)
         self.initial_true_targets_pos = self.true_targets_pos.clone()
         self.estimated_targets_mean = self.true_targets_pos.clone()
         self.estimated_targets_var = torch.zeros(self.num_targets, 2, 2)
         for index in range(0, self.num_targets):
             self.estimated_targets_var[index] = torch.tensor([[1.0, 0.0], [0.0, 1.0]])
-
-        self.target_motion_omegas = torch.zeros(self.num_targets, 1)
-        if not target_motion_omegas == None:
-            self.target_motion_omegas = target_motion_omegas
-        else:
-            for index in range(0, self.num_targets):
-                if(index%2 == 0):
-                    self.target_motion_omegas[index] = 33
-                else:
-                    self.target_motion_omegas[index] = 66
+        self.target_motion_omegas = torch.rand(self.num_targets)*100.0
 
         self.heatmap = torch.zeros(self.len_workspace, self.len_workspace)
         for index in range(0, self.num_targets):
@@ -184,18 +176,14 @@ class RobotTargetTrackingEnv(gym.GoalEnv):
         self.x4_list = []
         self.y4_list = []
         self.time_step = 1
-        self.true_targets_pos = (torch.rand(self.num_targets, 2) * self.len_workspace)
+        self.true_targets_radii = torch.rand(self.num_targets)*5.0+2.0
+        self.true_targets_pos = (torch.rand(self.num_targets, 2)*self.len_workspace)
         self.initial_true_targets_pos = self.true_targets_pos.clone()
         self.estimated_targets_mean = self.true_targets_pos.clone()
         self.estimated_targets_var = torch.zeros(self.num_targets, 2, 2)
         for index in range(0, self.num_targets):
             self.estimated_targets_var[index] = torch.tensor([[1, 0], [0, 1]])
-        self.target_motion_omegas = torch.zeros(self.num_targets, 1)
-        for index in range(0, self.num_targets):
-            if(index%2 == 0):
-                self.target_motion_omegas[index] = 33
-            else:
-                self.target_motion_omegas[index] = 66
+        self.target_motion_omegas = torch.rand(self.num_targets)*100.0
 
         self.robot_movement_x = []
         self.robot_movement_y = []
@@ -236,7 +224,7 @@ class RobotTargetTrackingEnv(gym.GoalEnv):
 
         self.state = torch.cat((self.sensors_pos[0], torch.tensor(true_obs).float()))
         self.observation_space = spaces.Box(-np.inf, np.inf, shape=self.state.shape, dtype='float32')
-        return self.state
+        return self.state, self.sensors_pos, self.estimated_targets_mean, self.true_targets_radii, self.target_motion_omegas
 
     
     def close(self):
@@ -373,7 +361,7 @@ class RobotTargetTrackingEnv(gym.GoalEnv):
             Function to update the true target positions when time step increases (assuming circular target motions)
         """
         for index in range(0, self.num_targets):
-            self.true_targets_pos[index] = torch.tensor([2.0*np.cos((self.time_step - 1)/float(self.target_motion_omegas[index])) + float(self.initial_true_targets_pos[index, 0]) - 2.0, 2.0*np.sin((self.time_step - 1)/float(self.target_motion_omegas[index])) + float(self.initial_true_targets_pos[index, 1])])
+            self.true_targets_pos[index] = torch.tensor([self.true_targets_radii[index]*np.cos((self.time_step-1)/float(self.target_motion_omegas[index]))+float(self.initial_true_targets_pos[index, 0])-self.true_targets_radii[index], self.true_targets_radii[index]*np.sin((self.time_step-1)/float(self.target_motion_omegas[index]))+float(self.initial_true_targets_pos[index, 1])])
         
 
     def update_estimated_targets_pos(self):
