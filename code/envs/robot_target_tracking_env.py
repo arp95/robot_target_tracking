@@ -87,16 +87,16 @@ class RobotTargetTrackingEnv(gym.GoalEnv):
         self.num_sensors = num_sensors
         self.sensors_pos = torch.zeros(self.num_sensors, 2)
         for index in range(0, self.num_sensors):
-            rand_angle = torch.rand(1) * 2 * np.pi
-            self.sensors_pos[index] = self.true_targets_pos.mean(0) + (torch.sqrt(torch.rand(1) + 0.5) * (self.len_workspace / 2) * (torch.tensor([torch.cos(rand_angle), torch.sin(rand_angle)])))
+            rand_angle = torch.rand(1)*2*np.pi
+            self.sensors_pos[index] = self.true_targets_pos.mean(0)+(torch.sqrt(torch.rand(1)+0.5)*(self.len_workspace/2)*(torch.tensor([torch.cos(rand_angle), torch.sin(rand_angle)])))
             if(self.sensors_pos[index, 0] >= self.len_workspace):
-                self.sensors_pos[index, 0] -= (self.sensors_pos[index, 0] - self.len_workspace + 1)
+                self.sensors_pos[index, 0] -= (self.sensors_pos[index, 0]-self.len_workspace+1)
             if(self.sensors_pos[index, 0] <= 0):
-                self.sensors_pos[index, 0] = (-self.sensors_pos[index, 0] + 1)
+                self.sensors_pos[index, 0] = (-self.sensors_pos[index, 0]+1)
             if(self.sensors_pos[index, 1] >= self.len_workspace):
-                self.sensors_pos[index, 1] -= (self.sensors_pos[index, 1] - self.len_workspace + 1)
+                self.sensors_pos[index, 1] -= (self.sensors_pos[index, 1]-self.len_workspace+1)
             if(self.sensors_pos[index, 1] <= 0):
-                self.sensors_pos[index, 1] = (-self.sensors_pos[index, 1] + 1)
+                self.sensors_pos[index, 1] = (-self.sensors_pos[index, 1]+1)
 
         self.robot_movement_x.append(float(self.sensors_pos[0, 0]))
         self.robot_movement_y.append(float(self.sensors_pos[0, 1]))
@@ -156,7 +156,7 @@ class RobotTargetTrackingEnv(gym.GoalEnv):
         done = False
         reward = None
         reward, done = self.compute_reward()        
-        if(self.time_step > 1000 or float(self.sensors_pos[0, 0]) <= 0 or float(self.sensors_pos[0, 1]) <= 0 or float(self.sensors_pos[0, 0]) >= self.len_workspace or float(self.sensors_pos[0, 1]) >= self.len_workspace):
+        if(self.time_step>1000 or float(self.sensors_pos[0, 0])<=0 or float(self.sensors_pos[0, 1])<=0 or float(self.sensors_pos[0, 0]) >= self.len_workspace or float(self.sensors_pos[0, 1])>=self.len_workspace):
             done = True
 
         self.state = torch.cat((self.sensors_pos[0], torch.tensor(true_obs).float()))
@@ -189,8 +189,8 @@ class RobotTargetTrackingEnv(gym.GoalEnv):
         self.robot_movement_y = []
         self.sensors_pos = torch.zeros(self.num_sensors, 2)
         for index in range(0, self.num_sensors):
-            rand_angle = torch.rand(1) * 2 * np.pi
-            self.sensors_pos[index] = self.true_targets_pos.mean(0) + (torch.sqrt(torch.rand(1) + 0.5) * (self.len_workspace / 2) * (torch.tensor([torch.cos(rand_angle), torch.sin(rand_angle)])))
+            rand_angle = torch.rand(1)*2*np.pi
+            self.sensors_pos[index] = self.true_targets_pos.mean(0)+(torch.sqrt(torch.rand(1)+0.5)*(self.len_workspace/2)*(torch.tensor([torch.cos(rand_angle), torch.sin(rand_angle)])))
             if(self.sensors_pos[index, 0] >= self.len_workspace):
                 self.sensors_pos[index, 0] -= (self.sensors_pos[index, 0] - self.len_workspace + 1)
             if(self.sensors_pos[index, 0] <= 0):
@@ -258,19 +258,19 @@ class RobotTargetTrackingEnv(gym.GoalEnv):
         plt.ylim(0, self.len_workspace)
         plt.contourf(X, Y, heatmap, cmap=cm.inferno)
         plt.plot(self.x1_list, self.y1_list, 'b--')
-        plt.plot(self.x1_list[len(self.x1_list) - 1], self.y1_list[len(self.y1_list) - 1], 'o', c='b', marker='*')
+        plt.plot(self.x1_list[len(self.x1_list)-1], self.y1_list[len(self.y1_list)-1], 'o', c='b', marker='*')
         plt.plot(self.x2_list, self.y2_list, 'b--')
-        plt.plot(self.x2_list[len(self.x2_list) - 1], self.y2_list[len(self.y2_list) - 1], 'o', c='b', marker='*')
+        plt.plot(self.x2_list[len(self.x2_list)-1], self.y2_list[len(self.y2_list)-1], 'o', c='b', marker='*')
         #plt.plot(self.x3_list, self.y3_list, 'b--')
-        #plt.plot(self.x3_list[len(self.x3_list) - 1], self.y3_list[len(self.y3_list) - 1], 'o', c='b', marker='*')
+        #plt.plot(self.x3_list[len(self.x3_list)-1], self.y3_list[len(self.y3_list)-1], 'o', c='b', marker='*')
         #plt.plot(self.x4_list, self.y4_list, 'b--')
-        #plt.plot(self.x4_list[len(self.x4_list) - 1], self.y4_list[len(self.y4_list) - 1], 'o', c='b', marker='*')
-        if(len(self.robot_movement_x) < 8):
+        #plt.plot(self.x4_list[len(self.x4_list)-1], self.y4_list[len(self.y4_list)-1], 'o', c='b', marker='*')
+        if(len(self.robot_movement_x)<8):
             plt.plot(self.robot_movement_x, self.robot_movement_y, 'r--')
         else:
             plt.plot(self.robot_movement_x[-8:], self.robot_movement_y[-8:], 'r--')
-        plt.scatter(self.robot_movement_x[len(self.robot_movement_x) - 1], self.robot_movement_y[len(self.robot_movement_y) - 1], color='r', marker='D')
-        plt.savefig("/home/arpitdec5/Desktop/robot_target_tracking/s2/" + str(self.time_step) + ".png")
+        plt.scatter(self.robot_movement_x[len(self.robot_movement_x)-1], self.robot_movement_y[len(self.robot_movement_y)-1], color='r', marker='D')
+        plt.savefig("/home/arpitdec5/Desktop/robot_target_tracking/s2/"+str(self.time_step)+".png")
         #plt.show()
 
 

@@ -35,7 +35,7 @@ env.reset()
 # constants
 lr = 0.0005
 epochs = 4000
-iters = 600
+iters = 300
 
 # create TD3 object
 state_dim = env.observation_space.shape[0]
@@ -59,7 +59,7 @@ for epoch in range(0, epochs):
         action, step_size = policy.select_action(state) + torch.normal(0, 0.1, size=env.action_space.shape)
         action = action.clamp(env.action_space.low.item(), env.action_space.high.item())
 
-        next_state, reward, done, _ = env.step(action, step_size)
+        next_state, reward, done, _, _ = env.step(action, step_size)
         replay_buffer.add((state, torch.tensor([action, step_size]), reward, next_state, np.float(done)))
         state = next_state
 
@@ -71,9 +71,9 @@ for epoch in range(0, epochs):
     # update policy
     policy.update(replay_buffer, iter, 100, 0.99, 0.99, 0.2, 2)
 
-    # save actor and critic models
-    if(epoch > 1000 and epoch%10==0):
-        policy.save("/home/arpitdec5/Desktop/robot_target_tracking/", "model_sensors_1_targets_4")
+    # save actor-critic models
+    if(epoch>1000 and epoch%10==0):
+        policy.save("/home/arpitdec5/Desktop/robot_target_tracking/", "model_sensors_1_targets_2")
 
     # print reward
     print()
@@ -99,4 +99,4 @@ plt.plot(e, r, c='blue', label='Cumulative Reward')
 plt.plot(m_e, m_r, c='orange', label='Mean Reward')
 #plt.plot(g_e, g_r, c='red', label='Greedy Algorithm')
 plt.legend()
-plt.savefig("/home/arpitdec5/Desktop/robot_target_tracking/reward_sensors_1_targets_4.png")
+plt.savefig("/home/arpitdec5/Desktop/robot_target_tracking/reward_sensors_1_targets_2.png")
