@@ -38,7 +38,7 @@ state_dim = env.observation_space.shape[0]
 action_dim = env.action_space.shape[0]
 max_action = float(env.action_space.high[0])
 policy = TD3(0.0005, state_dim, 2, max_action)
-policy.load_actor("/home/arpitdec5/Desktop/robot_target_tracking/", "model_sensors_1_targets_2")
+policy.load_actor("/home/arpitdec5/Desktop/robot_target_tracking/", "model_sensors_1_targets_4")
 
 # eval loop
 greedy_cov = []
@@ -60,6 +60,14 @@ for index in range(0, 500):
     x_true_2, y_true_2 = float(targets[1, 0]), float(targets[1, 1])
     var_2 = [[1, 0], [0, 1]]
     init_pos_2 = [float(targets[1, 0]) - float(radii[1]), float(targets[1, 1])]
+    mean_3 = np.asarray([float(targets[2, 0]), float(targets[2, 1])])
+    x_true_3, y_true_3 = float(targets[2, 0]), float(targets[2, 1])
+    var_3 = [[1, 0], [0, 1]]
+    init_pos_3 = [float(targets[2, 0]) - float(radii[2]), float(targets[2, 1])]
+    mean_4 = np.asarray([float(targets[3, 0]), float(targets[3, 1])])
+    x_true_4, y_true_4 = float(targets[3, 0]), float(targets[3, 1])
+    var_4 = [[1, 0], [0, 1]]
+    init_pos_4 = [float(targets[3, 0]) - float(radii[3]), float(targets[3, 1])]
     robots_x = []
     robots_y = []
     robots_id = []
@@ -80,6 +88,14 @@ for index in range(0, 500):
     true_target_y_2 = [y_true_2]
     prev_target_x_2 = x_true_2
     prev_target_y_2 = y_true_2
+    true_target_x_3 = [x_true_3]
+    true_target_y_3 = [y_true_3]
+    prev_target_x_3 = x_true_3
+    prev_target_y_3 = y_true_3
+    true_target_x_4 = [x_true_4]
+    true_target_y_4 = [y_true_4]
+    prev_target_x_4 = x_true_4
+    prev_target_y_4 = y_true_4
     prev_robot_x = robots_x[0]
     prev_robot_y = robots_y[0]
 
@@ -94,12 +110,20 @@ for index in range(0, 500):
         mean_1 = np.asarray([target_x_mean_1, target_y_mean_1])
         target_x_mean_2, target_y_mean_2, var_2, x_true_2, y_true_2 = extended_kalman_filter(mean_2[0], mean_2[1], var_2, robots_x, robots_y, robots_id, t, init_pos_2[0], init_pos_2[1], 1, float(omegas[1]), float(radii[1]))
         mean_2 = np.asarray([target_x_mean_2, target_y_mean_2])
+        target_x_mean_3, target_y_mean_3, var_3, x_true_3, y_true_3 = extended_kalman_filter(mean_3[0], mean_3[1], var_3, robots_x, robots_y, robots_id, t, init_pos_3[0], init_pos_3[1], 1, float(omegas[2]), float(radii[2]))
+        mean_3 = np.asarray([target_x_mean_3, target_y_mean_3])
+        target_x_mean_4, target_y_mean_4, var_4, x_true_4, y_true_4 = extended_kalman_filter(mean_4[0], mean_4[1], var_4, robots_x, robots_y, robots_id, t, init_pos_4[0], init_pos_4[1], 1, float(omegas[3]), float(radii[3]))
+        mean_4 = np.asarray([target_x_mean_4, target_y_mean_4])
 
         # update true target position
         true_target_x_1.append(x_true_1)
         true_target_y_1.append(y_true_1)
         true_target_x_2.append(x_true_2)
         true_target_y_2.append(y_true_2)
+        true_target_x_3.append(x_true_3)
+        true_target_y_3.append(y_true_3)
+        true_target_x_4.append(x_true_4)
+        true_target_y_4.append(y_true_4)
 
         # add robot position for rendering
         robot_movement_x.append(robots_x[0])
@@ -109,8 +133,8 @@ for index in range(0, 500):
         #render_ekf([target_x_mean_1, target_y_mean_1], [target_x_mean_2, target_y_mean_2], var_1, var_2, t, true_target_x_1, true_target_y_1,  true_target_x_2, true_target_y_2, robot_movement_x, robot_movement_y)
 
         # update robot position
-        next_robot_x, next_robot_y, val = update_robot_pos_ekf(robots_x[0], robots_y[0], [target_x_mean_1, target_x_mean_2], [target_y_mean_1, target_y_mean_2], [var_1, var_2], [prev_target_x_1, prev_target_x_2], [prev_target_y_1, prev_target_y_2], action_radius, map_height, map_width, t+1, prev_robot_x, prev_robot_y)
-        avg_val_greedy += np.linalg.det(var_1) + np.linalg.det(var_2)
+        next_robot_x, next_robot_y, val = update_robot_pos_ekf(robots_x[0], robots_y[0], [target_x_mean_1, target_x_mean_2, target_x_mean_3, target_x_mean_4], [target_y_mean_1, target_y_mean_2, target_y_mean_3, target_y_mean_4], [var_1, var_2, var_3, var_4], [prev_target_x_1, prev_target_x_2, prev_target_x_3, prev_target_x_4], [prev_target_y_1, prev_target_y_2, prev_target_y_3, prev_target_y_4], action_radius, map_height, map_width, t+1, prev_robot_x, prev_robot_y)
+        avg_val_greedy += np.linalg.det(var_1) + np.linalg.det(var_2) + np.linalg.det(var_3) + np.linalg.det(var_4)
         prev_robot_x = robots_x[0]
         prev_robot_y = robots_y[0]
         robots_x[0] = next_robot_x
@@ -119,6 +143,10 @@ for index in range(0, 500):
         prev_target_y_1 = target_y_mean_1
         prev_target_x_2 = target_x_mean_2
         prev_target_y_2 = target_y_mean_2
+        prev_target_x_3 = target_x_mean_3
+        prev_target_y_3 = target_y_mean_3
+        prev_target_x_4 = target_x_mean_4
+        prev_target_y_4 = target_y_mean_4
     avg_val_greedy = avg_val_greedy/i
     greedy_cov.append(avg_val_greedy)
     #################################################################################
@@ -136,10 +164,10 @@ for index in range(0, 500):
         action, step_size = policy.select_action(state)
         next_state, reward, done, _, var = env.step(action, step_size)
         state = next_state
-        env.render()
-        env.close()
+        #env.render()
+        #env.close()
 
-        average_cov_rl += np.linalg.det(var[0]) + np.linalg.det(var[1])
+        average_cov_rl += np.linalg.det(var[0]) + np.linalg.det(var[1]) + np.linalg.det(var[2]) + np.linalg.det(var[3])
         for index in range(0, len(var)):
             if(index==0):
                 target_1.append(np.linalg.det(var[0]))
@@ -158,16 +186,16 @@ for index in range(0, 500):
 
 # plot curve
 plt.cla()
-plt.title("Plot for scenario: sensors=1 and targets=2")
+plt.title("Plot for scenario: sensors=1 and targets=4")
 plt.xlabel("Data(Ratio of Avg. Determinant of covariance matrix(RL/greedy))")
 plt.ylabel("Probability")
 plt.hist(ratio, density=True,  bins=30)
-plt.savefig("/home/arpitdec5/Desktop/robot_target_tracking/ratio_episode_curve_sensors_1_targets_2.png")
+plt.savefig("/home/arpitdec5/Desktop/robot_target_tracking/ratio_episode_curve_sensors_1_targets_4.png")
 plt.cla()
-plt.title("Plot for scenario: sensors=1 and targets=2")
+plt.title("Plot for scenario: sensors=1 and targets=4")
 plt.xlabel("Episodes")
 plt.ylabel("Avg. Determinant of covariance matrix")
 plt.plot(step, greedy_cov, label='Greedy Algo')
 plt.plot(step, rl_cov, label='RL Algo')
 plt.legend()
-plt.savefig("/home/arpitdec5/Desktop/robot_target_tracking/det_episode_curve_sensors_1_targets_2.png")
+plt.savefig("/home/arpitdec5/Desktop/robot_target_tracking/det_episode_curve_sensors_1_targets_4.png")
