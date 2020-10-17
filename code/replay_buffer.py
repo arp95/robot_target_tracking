@@ -26,7 +26,7 @@ class ReplayBuffer(object):
         indices = np.random.randint(0, len(self.buffer), size=batch_size)
 
         states = torch.zeros((batch_size, self.state_dim))
-        actions = torch.zeros((batch_size, 2))
+        actions = torch.zeros((batch_size, self.action_dim))
         next_states = torch.zeros((batch_size, self.state_dim))
         rewards = torch.zeros((batch_size, 1))
         dones = torch.zeros((batch_size, 1))

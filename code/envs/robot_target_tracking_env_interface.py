@@ -1,6 +1,6 @@
 # header files needed
 from gym import utils
-from envs.robot_target_tracking_env import RobotTargetTrackingEnv
+from envs.robot_target_tracking_env_sensors import RobotTargetTrackingEnv
 import numpy as np
 import torch
 

@@ -41,8 +41,8 @@ iters = 300
 state_dim = env.observation_space.shape[0]
 action_dim = env.action_space.shape[0]
 max_action = float(env.action_space.high[0])
-policy = TD3(lr, state_dim, 2, max_action)
-replay_buffer = ReplayBuffer(state_dim=state_dim, action_dim=2)
+policy = TD3(lr, state_dim, 4, max_action)
+replay_buffer = ReplayBuffer(state_dim=state_dim, action_dim=4)
 mean_reward, ep_reward = 0, 0
 
 # training
@@ -56,11 +56,12 @@ mean_reward = 0
 for epoch in range(0, epochs):
     state, _, _, _, _ = env.reset()
     for iter in range(0, iters):
-        action, step_size = policy.select_action(state) + torch.normal(0, 0.1, size=env.action_space.shape)
-        action = action.clamp(env.action_space.low.item(), env.action_space.high.item())
+        action_1, step_size_1, action_2, step_size_2 = policy.select_action(state) + torch.normal(0, 0.1, size=env.action_space.shape)
+        action_1 = action_1.clamp(env.action_space.low.item(), env.action_space.high.item())
+        action_2 = action_2.clamp(env.action_space.low.item(), env.action_space.high.item())
 
-        next_state, reward, done, _, _ = env.step(action, step_size)
-        replay_buffer.add((state, torch.tensor([action, step_size]), reward, next_state, np.float(done)))
+        next_state, reward, done, _, _ = env.step([action_1, action_2], [step_size_1, step_size_2])
+        replay_buffer.add((state, torch.tensor([action_1, step_size_1, action_2, step_size_2]), reward, next_state, np.float(done)))
         state = next_state
 
         mean_reward += reward
@@ -73,7 +74,7 @@ for epoch in range(0, epochs):
 
     # save actor-critic models
     if(epoch>1000 and epoch%10==0):
-        policy.save("/home/arpitdec5/Desktop/robot_target_tracking/", "model_sensors_1_targets_2")
+        policy.save("/home/arpitdec5/Desktop/robot_target_tracking/", "model_sensors_2_targets_2")
 
     # print reward
     print()
@@ -99,4 +100,4 @@ plt.plot(e, r, c='blue', label='Cumulative Reward')
 plt.plot(m_e, m_r, c='orange', label='Mean Reward')
 #plt.plot(g_e, g_r, c='red', label='Greedy Algorithm')
 plt.legend()
-plt.savefig("/home/arpitdec5/Desktop/robot_target_tracking/reward_sensors_1_targets_2.png")
+plt.savefig("/home/arpitdec5/Desktop/robot_target_tracking/reward_sensors_2_targets_2.png")

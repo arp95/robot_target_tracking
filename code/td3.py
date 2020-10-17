@@ -27,6 +27,8 @@ class Actor(nn.Module):
         a = self.l3(a)
         a[:, 0] = torch.tanh(a[:, 0]) * self.max_action
         a[:, 1] = torch.sigmoid(a[:, 1])
+        a[:, 2] = torch.tanh(a[:, 2]) * self.max_action
+        a[:, 3] = torch.sigmoid(a[:, 3])
         return a
         
 class Critic(nn.Module):

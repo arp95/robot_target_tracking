@@ -45,12 +45,13 @@ greedy_cov = []
 rl_cov = []
 step = []
 ratio = []
-for index in range(0, 500):
+for index in range(0, 1):
     # init environment
     state, sensors, targets, radii, omegas = env.reset()
     step.append(index+1)
 
     ############################ Greedy Algo #######################################
+    '''
     # init ekf variables
     mean_1 = np.asarray([float(targets[0, 0]), float(targets[0, 1])])
     x_true_1, y_true_1 = float(targets[0, 0]), float(targets[0, 1])
@@ -149,6 +150,7 @@ for index in range(0, 500):
         prev_target_y_4 = target_y_mean_4
     avg_val_greedy = avg_val_greedy/i
     greedy_cov.append(avg_val_greedy)
+    '''
     #################################################################################
 
 
@@ -164,10 +166,10 @@ for index in range(0, 500):
         action, step_size = policy.select_action(state)
         next_state, reward, done, _, var = env.step(action, step_size)
         state = next_state
-        #env.render()
-        #env.close()
+        env.render()
+        env.close()
 
-        average_cov_rl += np.linalg.det(var[0]) + np.linalg.det(var[1]) + np.linalg.det(var[2]) + np.linalg.det(var[3])
+        average_cov_rl += np.linalg.det(var[0])+np.linalg.det(var[1])+np.linalg.det(var[2])+np.linalg.det(var[3])
         for index in range(0, len(var)):
             if(index==0):
                 target_1.append(np.linalg.det(var[0]))
@@ -181,10 +183,11 @@ for index in range(0, 500):
             break
     average_cov_rl = average_cov_rl/i
     rl_cov.append(average_cov_rl)
-    ratio.append(average_cov_rl/avg_val_greedy)
+    #ratio.append(average_cov_rl/avg_val_greedy)
 
 
 # plot curve
+'''
 plt.cla()
 plt.title("Plot for scenario: sensors=1 and targets=4")
 plt.xlabel("Data(Ratio of Avg. Determinant of covariance matrix(RL/greedy))")
@@ -199,3 +202,4 @@ plt.plot(step, greedy_cov, label='Greedy Algo')
 plt.plot(step, rl_cov, label='RL Algo')
 plt.legend()
 plt.savefig("/home/arpitdec5/Desktop/robot_target_tracking/det_episode_curve_sensors_1_targets_4.png")
+'''
