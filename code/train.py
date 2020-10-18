@@ -95,7 +95,7 @@ for epoch in range(0, epochs):
 # plot epoch vs reward curve
 plt.xlabel("Episodes")
 plt.ylabel("Reward")
-plt.ylim(0, 1000)
+plt.ylim(0, 2000)
 plt.plot(e, r, c='blue', label='Cumulative Reward')
 plt.plot(m_e, m_r, c='orange', label='Mean Reward')
 #plt.plot(g_e, g_r, c='red', label='Greedy Algorithm')
