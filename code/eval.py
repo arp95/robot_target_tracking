@@ -37,7 +37,7 @@ env.reset()
 state_dim = env.observation_space.shape[0]
 action_dim = env.action_space.shape[0]
 max_action = float(env.action_space.high[0])
-policy = TD3(0.0005, state_dim, 2, max_action)
+policy = TD3(0.0005, state_dim, 4, max_action)
 policy.load_actor("/home/arpitdec5/Desktop/robot_target_tracking/", "model_sensors_2_targets_4")
 
 # eval loop
@@ -163,13 +163,14 @@ for index in range(0, 1):
     target_4 = []
     for iter in range(0, 200):
         i += 1
-        action, step_size = policy.select_action(state)
-        next_state, reward, done, _, var = env.step(action, step_size)
+        action_1, step_size_1, action_2, step_size_2 = policy.select_action(state)
+        next_state, reward, done, _, var = env.step([action_1, action_2], [step_size_1, step_size_2])
         state = next_state
         env.render()
         env.close()
 
         average_cov_rl += np.linalg.det(var[0])+np.linalg.det(var[1])+np.linalg.det(var[2])+np.linalg.det(var[3])
+        #average_cov_rl += np.linalg.det(var[0])+np.linalg.det(var[1])
         for index in range(0, len(var)):
             if(index==0):
                 target_1.append(np.linalg.det(var[0]))
