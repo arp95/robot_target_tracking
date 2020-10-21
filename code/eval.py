@@ -38,7 +38,7 @@ state_dim = env.observation_space.shape[0]
 action_dim = env.action_space.shape[0]
 max_action = float(env.action_space.high[0])
 policy = TD3(0.0005, state_dim, 4, max_action)
-policy.load_actor("/home/arpitdec5/Desktop/robot_target_tracking/", "model_sensors_2_targets_4")
+policy.load_actor("/home/arpitdec5/Desktop/robot_target_tracking/", "sample_model_sensors_2_targets_2")
 
 # eval loop
 greedy_cov = []
@@ -169,8 +169,9 @@ for index in range(0, 1):
         env.render()
         env.close()
 
-        average_cov_rl += np.linalg.det(var[0])+np.linalg.det(var[1])+np.linalg.det(var[2])+np.linalg.det(var[3])
+        #average_cov_rl += np.linalg.det(var[0])+np.linalg.det(var[1])+np.linalg.det(var[2])+np.linalg.det(var[3])
         #average_cov_rl += np.linalg.det(var[0])+np.linalg.det(var[1])
+        average_cov_rl += np.linalg.det(var[0])
         for index in range(0, len(var)):
             if(index==0):
                 target_1.append(np.linalg.det(var[0]))

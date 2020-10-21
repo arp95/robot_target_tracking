@@ -48,7 +48,7 @@ class RobotTargetTrackingEnv(gym.GoalEnv):
         #self.model.to(self.device)
 
 
-    def env_parametrization(self, num_targets=4, num_sensors=2, target_motion_omegas=None, meas_model='range'):
+    def env_parametrization(self, num_targets=1, num_sensors=2, target_motion_omegas=None, meas_model='range'):
         """ 
             Function for parametrizing the environment
         """
@@ -64,6 +64,10 @@ class RobotTargetTrackingEnv(gym.GoalEnv):
         self.num_targets = num_targets
         self.true_targets_radii = torch.rand(self.num_targets)*5.0+2.0
         self.true_targets_pos = (torch.rand(self.num_targets, 2)*self.len_workspace)
+        self.true_targets_pos[0, 0] = 16
+        self.true_targets_pos[0, 1] = 8
+        self.true_const = np.random.uniform(low=9, high=19, size=(1,))[0]
+        self.true_slope = (self.true_targets_pos[0, 1] - self.true_const)/self.true_targets_pos[0, 0]
         self.initial_true_targets_pos = self.true_targets_pos.clone()
         self.estimated_targets_mean = self.true_targets_pos.clone()
         self.estimated_targets_var = torch.zeros(self.num_targets, 2, 2)
@@ -103,6 +107,10 @@ class RobotTargetTrackingEnv(gym.GoalEnv):
                 self.sensors_pos[index, 1] -= (self.sensors_pos[index, 1]-self.len_workspace+1)
             if(self.sensors_pos[index, 1]<=0):
                 self.sensors_pos[index, 1] = (-self.sensors_pos[index, 1]+1)
+        self.sensors_pos[0, 0] = 18
+        self.sensors_pos[0, 1] = 10
+        self.sensors_pos[1, 0] = 14
+        self.sensors_pos[1, 1] = 6
 
         self.robot_movement_x_1.append(float(self.sensors_pos[0, 0]))
         self.robot_movement_y_1.append(float(self.sensors_pos[0, 1]))
@@ -114,12 +122,12 @@ class RobotTargetTrackingEnv(gym.GoalEnv):
         #self.robot_movement_y_4.append(float(self.sensors_pos[3, 1]))
         self.x1_list.append(float(self.true_targets_pos[0, 0]))
         self.y1_list.append(float(self.true_targets_pos[0, 1]))
-        self.x2_list.append(float(self.true_targets_pos[1, 0]))
-        self.y2_list.append(float(self.true_targets_pos[1, 1]))
-        self.x3_list.append(float(self.true_targets_pos[2, 0]))
-        self.y3_list.append(float(self.true_targets_pos[2, 1]))
-        self.x4_list.append(float(self.true_targets_pos[3, 0]))
-        self.y4_list.append(float(self.true_targets_pos[3, 1]))
+        #self.x2_list.append(float(self.true_targets_pos[1, 0]))
+        #self.y2_list.append(float(self.true_targets_pos[1, 1]))
+        #self.x3_list.append(float(self.true_targets_pos[2, 0]))
+        #self.y3_list.append(float(self.true_targets_pos[2, 1]))
+        #self.x4_list.append(float(self.true_targets_pos[3, 0]))
+        #self.y4_list.append(float(self.true_targets_pos[3, 1]))
 
         self.meas_model = meas_model
         if self.meas_model == 'bearing':
@@ -153,12 +161,12 @@ class RobotTargetTrackingEnv(gym.GoalEnv):
         #self.robot_movement_y_4.append(float(self.sensors_pos[3, 1]))
         self.x1_list.append(float(self.true_targets_pos[0, 0]))
         self.y1_list.append(float(self.true_targets_pos[0, 1]))
-        self.x2_list.append(float(self.true_targets_pos[1, 0]))
-        self.y2_list.append(float(self.true_targets_pos[1, 1]))
-        self.x3_list.append(float(self.true_targets_pos[2, 0]))
-        self.y3_list.append(float(self.true_targets_pos[2, 1]))
-        self.x4_list.append(float(self.true_targets_pos[3, 0]))
-        self.y4_list.append(float(self.true_targets_pos[3, 1]))
+        #self.x2_list.append(float(self.true_targets_pos[1, 0]))
+        #self.y2_list.append(float(self.true_targets_pos[1, 1]))
+        #self.x3_list.append(float(self.true_targets_pos[2, 0]))
+        #self.y3_list.append(float(self.true_targets_pos[2, 1]))
+        #self.x4_list.append(float(self.true_targets_pos[3, 0]))
+        #self.y4_list.append(float(self.true_targets_pos[3, 1]))
 
         self.heatmap = torch.zeros(self.len_workspace, self.len_workspace)
         for index in range(0, self.num_targets):
@@ -175,7 +183,7 @@ class RobotTargetTrackingEnv(gym.GoalEnv):
         reward = None
         reward, done = self.compute_reward()
         for index in range(0, self.num_sensors):
-            if(self.time_step>1000 or float(self.sensors_pos[index, 0]) <= 0 or float(self.sensors_pos[index, 1]) <= 0 or float(self.sensors_pos[index, 0]) >= self.len_workspace or float(self.sensors_pos[index, 1]) >= self.len_workspace):
+            if(self.time_step>200 or float(self.sensors_pos[index, 0]) <= 0 or float(self.sensors_pos[index, 1]) <= 0 or float(self.sensors_pos[index, 0]) >= self.len_workspace or float(self.sensors_pos[index, 1]) >= self.len_workspace):
                 done = True
 
         self.state = torch.cat((self.sensors_pos[0], self.sensors_pos[1], torch.tensor(true_obs).float()))
@@ -197,6 +205,10 @@ class RobotTargetTrackingEnv(gym.GoalEnv):
         self.time_step = 1
         self.true_targets_radii = torch.rand(self.num_targets)*5.0+2.0
         self.true_targets_pos = (torch.rand(self.num_targets, 2)*self.len_workspace)
+        self.true_targets_pos[0, 0] = 16
+        self.true_targets_pos[0, 1] = 8
+        self.true_const = np.random.uniform(low=9, high=19, size=(1,))[0]
+        self.true_slope = (self.true_targets_pos[0, 1] - self.true_const)/self.true_targets_pos[0, 0]
         self.initial_true_targets_pos = self.true_targets_pos.clone()
         self.estimated_targets_mean = self.true_targets_pos.clone()
         self.estimated_targets_var = torch.zeros(self.num_targets, 2, 2)
@@ -223,7 +235,11 @@ class RobotTargetTrackingEnv(gym.GoalEnv):
             if(self.sensors_pos[index, 1]>=self.len_workspace):
                 self.sensors_pos[index, 1] -= (self.sensors_pos[index, 1]-self.len_workspace+1)
             if(self.sensors_pos[index, 1]<=0):
-                self.sensors_pos[index, 1] = (-self.sensors_pos[index, 1]+1)      
+                self.sensors_pos[index, 1] = (-self.sensors_pos[index, 1]+1)  
+        self.sensors_pos[0, 0] = 18
+        self.sensors_pos[0, 1] = 10
+        self.sensors_pos[1, 0] = 14
+        self.sensors_pos[1, 1] = 6
 
         self.robot_movement_x_1.append(float(self.sensors_pos[0, 0]))
         self.robot_movement_y_1.append(float(self.sensors_pos[0, 1]))
@@ -235,12 +251,12 @@ class RobotTargetTrackingEnv(gym.GoalEnv):
         #self.robot_movement_y_4.append(float(self.sensors_pos[3, 1]))
         self.x1_list.append(float(self.true_targets_pos[0, 0]))
         self.y1_list.append(float(self.true_targets_pos[0, 1]))
-        self.x2_list.append(float(self.true_targets_pos[1, 0]))
-        self.y2_list.append(float(self.true_targets_pos[1, 1]))
-        self.x3_list.append(float(self.true_targets_pos[2, 0]))
-        self.y3_list.append(float(self.true_targets_pos[2, 1]))
-        self.x4_list.append(float(self.true_targets_pos[3, 0]))
-        self.y4_list.append(float(self.true_targets_pos[3, 1]))
+        #self.x2_list.append(float(self.true_targets_pos[1, 0]))
+        #self.y2_list.append(float(self.true_targets_pos[1, 1]))
+        #self.x3_list.append(float(self.true_targets_pos[2, 0]))
+        #self.y3_list.append(float(self.true_targets_pos[2, 1]))
+        #self.x4_list.append(float(self.true_targets_pos[3, 0]))
+        #self.y4_list.append(float(self.true_targets_pos[3, 1]))
 
         self.heatmap = torch.zeros(self.len_workspace, self.len_workspace)
         for index in range(0, self.num_targets):
@@ -290,12 +306,12 @@ class RobotTargetTrackingEnv(gym.GoalEnv):
         plt.contourf(X, Y, heatmap, cmap=cm.inferno)
         plt.plot(self.x1_list, self.y1_list, 'b--')
         plt.plot(self.x1_list[len(self.x1_list) - 1], self.y1_list[len(self.y1_list) - 1], 'o', c='b', marker='*')
-        plt.plot(self.x2_list, self.y2_list, 'b--')
-        plt.plot(self.x2_list[len(self.x2_list) - 1], self.y2_list[len(self.y2_list) - 1], 'o', c='b', marker='*')
-        plt.plot(self.x3_list, self.y3_list, 'b--')
-        plt.plot(self.x3_list[len(self.x3_list) - 1], self.y3_list[len(self.y3_list) - 1], 'o', c='b', marker='*')
-        plt.plot(self.x4_list, self.y4_list, 'b--')
-        plt.plot(self.x4_list[len(self.x4_list) - 1], self.y4_list[len(self.y4_list) - 1], 'o', c='b', marker='*')
+        #plt.plot(self.x2_list, self.y2_list, 'b--')
+        #plt.plot(self.x2_list[len(self.x2_list) - 1], self.y2_list[len(self.y2_list) - 1], 'o', c='b', marker='*')
+        #plt.plot(self.x3_list, self.y3_list, 'b--')
+        #plt.plot(self.x3_list[len(self.x3_list) - 1], self.y3_list[len(self.y3_list) - 1], 'o', c='b', marker='*')
+        #plt.plot(self.x4_list, self.y4_list, 'b--')
+        #plt.plot(self.x4_list[len(self.x4_list) - 1], self.y4_list[len(self.y4_list) - 1], 'o', c='b', marker='*')
         if(len(self.robot_movement_x_1)<8):
             plt.plot(self.robot_movement_x_1, self.robot_movement_y_1, 'r--')
         else:
@@ -386,9 +402,13 @@ class RobotTargetTrackingEnv(gym.GoalEnv):
         """
             Function to update the true target positions when time step increases (assuming circular target motions)
         """
+        '''
         for index in range(0, self.num_targets):
             self.true_targets_pos[index] = torch.tensor([self.true_targets_radii[index]*np.cos((self.time_step-1)/float(self.target_motion_omegas[index]))+float(self.initial_true_targets_pos[index, 0])-self.true_targets_radii[index], self.true_targets_radii[index]*np.sin((self.time_step-1)/float(self.target_motion_omegas[index]))+float(self.initial_true_targets_pos[index, 1])])
-        
+        '''
+        for index in range(0, self.num_targets):
+            self.true_targets_pos[index] = torch.tensor([self.true_targets_pos[index, 0]-0.05, (self.true_slope*(self.true_targets_pos[index, 0]-0.05))+self.true_const])
+
 
     def update_estimated_targets_pos(self):
         """
