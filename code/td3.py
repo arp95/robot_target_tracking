@@ -91,6 +91,7 @@ class TD3(object):
             noise = torch.normal(0, policy_noise, action.shape).to(self.device)
             next_action = (self.actor_target(next_state) + noise)
             next_action[:, 0] = next_action[:, 0].clamp(-self.max_action, self.max_action)
+            next_action[:, 2] = next_action[:, 2].clamp(-self.max_action, self.max_action)
             
             # Compute target Q-value
             target_Q1 = self.critic_1_target(next_state, next_action)
