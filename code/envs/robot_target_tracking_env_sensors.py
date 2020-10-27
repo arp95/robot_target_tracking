@@ -109,9 +109,9 @@ class RobotTargetTrackingEnv(gym.GoalEnv):
             if(self.sensors_pos[index, 1]<=0):
                 self.sensors_pos[index, 1] = (-self.sensors_pos[index, 1]+1)
         self.sensors_pos[0, 0] = 18
-        self.sensors_pos[0, 1] = 11
-        self.sensors_pos[1, 0] = 10
-        self.sensors_pos[1, 1] = 5
+        self.sensors_pos[0, 1] = 14
+        self.sensors_pos[1, 0] = 18
+        self.sensors_pos[1, 1] = 12
 
         self.robot_movement_x_1.append(float(self.sensors_pos[0, 0]))
         self.robot_movement_y_1.append(float(self.sensors_pos[0, 1]))
@@ -239,9 +239,9 @@ class RobotTargetTrackingEnv(gym.GoalEnv):
             if(self.sensors_pos[index, 1]<=0):
                 self.sensors_pos[index, 1] = (-self.sensors_pos[index, 1]+1)  
         self.sensors_pos[0, 0] = 18
-        self.sensors_pos[0, 1] = 11
-        self.sensors_pos[1, 0] = 10
-        self.sensors_pos[1, 1] = 5
+        self.sensors_pos[0, 1] = 14
+        self.sensors_pos[1, 0] = 18
+        self.sensors_pos[1, 1] = 12
 
         self.robot_movement_x_1.append(float(self.sensors_pos[0, 0]))
         self.robot_movement_y_1.append(float(self.sensors_pos[0, 1]))

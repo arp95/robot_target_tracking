@@ -156,6 +156,7 @@ for index in range(0, 1):
 
     ############################ RL Algo #######################################
     average_cov_rl = 0.0
+    cov_rl = 0.0
     i = 0
     target_1 = []
     target_2 = []
@@ -172,6 +173,7 @@ for index in range(0, 1):
         #average_cov_rl += np.linalg.det(var[0])+np.linalg.det(var[1])+np.linalg.det(var[2])+np.linalg.det(var[3])
         #average_cov_rl += np.linalg.det(var[0])+np.linalg.det(var[1])
         average_cov_rl += np.linalg.det(var[0])
+        cov_rl = np.linalg.det(var[0])
         for index in range(0, len(var)):
             if(index==0):
                 target_1.append(np.linalg.det(var[0]))
@@ -185,6 +187,8 @@ for index in range(0, 1):
             break
     average_cov_rl = average_cov_rl/i
     rl_cov.append(average_cov_rl)
+    print(cov_rl)
+    print(average_cov_rl)
     #ratio.append(average_cov_rl/avg_val_greedy)
 
 
