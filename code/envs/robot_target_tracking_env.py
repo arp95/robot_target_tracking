@@ -24,6 +24,7 @@ from matplotlib.patches import Ellipse
 import matplotlib.transforms as transforms
 from math import pi, cos, sin
 from scipy.stats import multivariate_normal
+from convnet import *
 
 
 # OpenAI gym environment class
@@ -41,11 +42,7 @@ class RobotTargetTrackingEnv(gym.GoalEnv):
         self.time_step = 1
 
         self.action_space = spaces.Box(-np.pi, np.pi, shape=(1,), dtype='float32')
-
-        #self.model = torchvision.models.resnet50(pretrained=True)
-        #self.model.conv1 = nn.Conv2d(1, 64, kernel_size=7, stride=2, padding=3, bias=False)
-        #self.model.fc = torch.nn.Linear(2048, 128)
-        #self.model.to(self.device)
+        self.convnet = ConvNet()
 
 
     def env_parametrization(self, num_targets=4, num_sensors=1, target_motion_omegas=None, meas_model='range'):
@@ -80,7 +77,9 @@ class RobotTargetTrackingEnv(gym.GoalEnv):
             pos[:, :, 0] = X; pos[:, :, 1] = Y
             rv = multivariate_normal(self.estimated_targets_mean[index], self.estimated_targets_var[index])
             self.heatmap += rv.pdf(pos)
-        true_obs = self.heatmap.flatten()
+        image = F.interpolate(self.heatmap, (256, 256), mode='bilinear')
+        true_obs = self.convnet(image).squeeze()
+        #true_obs = self.heatmap.flatten()
 
         self.robot_movement_x = []
         self.robot_movement_y = []

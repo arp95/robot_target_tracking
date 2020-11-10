@@ -74,7 +74,7 @@ for epoch in range(0, epochs):
 
     # save actor-critic models
     if(epoch>100 and epoch%10==0):
-        policy.save("/home/arpitdec5/Desktop/robot_target_tracking/", "sample_model_sensors_2_targets_1_1")
+        policy.save("/home/arpitdec5/Desktop/robot_target_tracking/", "sample_model_sensors_2_targets_4")
 
     # print reward
     print()
@@ -100,4 +100,4 @@ plt.plot(e, r, c='blue', label='Cumulative Reward')
 plt.plot(m_e, m_r, c='orange', label='Mean Reward')
 #plt.plot(g_e, g_r, c='red', label='Greedy Algorithm')
 plt.legend()
-plt.savefig("/home/arpitdec5/Desktop/robot_target_tracking/sample_reward_sensors_2_targets_1_1.png")
+plt.savefig("/home/arpitdec5/Desktop/robot_target_tracking/sample_reward_sensors_2_targets_4.png")

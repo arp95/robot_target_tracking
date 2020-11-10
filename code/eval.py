@@ -38,7 +38,7 @@ state_dim = env.observation_space.shape[0]
 action_dim = env.action_space.shape[0]
 max_action = float(env.action_space.high[0])
 policy = TD3(0.0005, state_dim, 4, max_action)
-policy.load_actor("/home/arpitdec5/Desktop/robot_target_tracking/", "sample_model_sensors_2_targets_1_3")
+policy.load_actor("/home/arpitdec5/Desktop/robot_target_tracking/", "sample_model_sensors_2_targets_2_1")
 
 # eval loop
 greedy_cov = []
