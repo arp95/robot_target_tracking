@@ -29,25 +29,35 @@ register(
 # initialise environment
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 env_name = "RobotTargetTrackingEnv-v0"
-env = gym.make(env_name)
-env.env_parametrization()
-env.reset()
+env_1 = gym.make(env_name)
+env_1.env_parametrization()
+env_1.reset()
+env_2 = gym.make(env_name)
+env_2.env_parametrization(include_cnn=False)
+env_2.reset()
 
 # create TD3 object and load optimal policy
-state_dim = env.observation_space.shape[0]
-action_dim = env.action_space.shape[0]
-max_action = float(env.action_space.high[0])
-policy = TD3(0.0005, state_dim, 4, max_action)
-policy.load_actor("/home/arpitdec5/Desktop/robot_target_tracking/", "sample_model_sensors_2_targets_2_1")
+state_dim = env_1.observation_space.shape[0]
+action_dim = env_1.action_space.shape[0]
+max_action = float(env_1.action_space.high[0])
+policy_1 = TD3(0.0005, state_dim, 4, max_action)
+policy_1.load_actor("/home/arpitdec5/Desktop/robot_target_tracking/", "sample_model_sensors_2_targets_4")
+state_dim = env_2.observation_space.shape[0]
+action_dim = env_2.action_space.shape[0]
+max_action = float(env_2.action_space.high[0])
+policy_2 = TD3(0.0005, state_dim, 4, max_action)
+policy_2.load_actor("/home/arpitdec5/Desktop/robot_target_tracking/", "model_sensors_2_targets_4")
 
 # eval loop
 greedy_cov = []
-rl_cov = []
+rl1_cov = []
+rl2_cov = []
 step = []
 ratio = []
-for index in range(0, 1):
-    # init environment
-    state, sensors, targets, radii, omegas = env.reset()
+for index in range(0, 500):
+    # init environment 1
+    state, sensors, targets, radii, omegas = env_1.reset()
+    state_2, sensors_2, targets_2, radii_2, omegas_2 = env_2.reset()
     step.append(index+1)
 
     ############################ Greedy Algo #######################################
@@ -154,8 +164,8 @@ for index in range(0, 1):
     #################################################################################
 
 
-    ############################ RL Algo #######################################
-    average_cov_rl = 0.0
+    ############################ RL_1 Algo #######################################
+    average_cov_rl_1 = 0.0
     cov_rl = 0.0
     i = 0
     target_1 = []
@@ -164,16 +174,16 @@ for index in range(0, 1):
     target_4 = []
     for iter in range(0, 100):
         i += 1
-        action_1, step_size_1, action_2, step_size_2 = policy.select_action(state)
-        next_state, reward, done, _, var = env.step([action_1, action_2], [step_size_1, step_size_2])
+        action_1, step_size_1, action_2, step_size_2 = policy_1.select_action(state)
+        next_state, reward, done, _, var = env_1.step([action_1, action_2], [step_size_1, step_size_2])
         state = next_state
-        env.render()
-        env.close()
+        #env.render()
+        #env.close()
 
-        #average_cov_rl += np.linalg.det(var[0])+np.linalg.det(var[1])+np.linalg.det(var[2])+np.linalg.det(var[3])
+        average_cov_rl_1 += np.linalg.det(var[0])+np.linalg.det(var[1])+np.linalg.det(var[2])+np.linalg.det(var[3])
         #average_cov_rl += np.linalg.det(var[0])+np.linalg.det(var[1])
-        average_cov_rl += np.linalg.det(var[0])
-        cov_rl = np.linalg.det(var[0])
+        #average_cov_rl += np.linalg.det(var[0])
+        #cov_rl = np.linalg.det(var[0])
         for index in range(0, len(var)):
             if(index==0):
                 target_1.append(np.linalg.det(var[0]))
@@ -185,27 +195,57 @@ for index in range(0, 1):
                 target_4.append(np.linalg.det(var[3]))
         if(done):
             break
-    average_cov_rl = average_cov_rl/i
-    rl_cov.append(average_cov_rl)
-    print(cov_rl)
-    print(average_cov_rl)
-    #ratio.append(average_cov_rl/avg_val_greedy)
+    average_cov_rl_1 = average_cov_rl_1/i
+    rl1_cov.append(average_cov_rl_1)
+
+    ############################ RL_2 Algo #######################################
+    average_cov_rl_2 = 0.0
+    cov_rl = 0.0
+    i = 0
+    target_1 = []
+    target_2 = []
+    target_3 = []
+    target_4 = []
+    for iter in range(0, 100):
+        i += 1
+        action_1, step_size_1, action_2, step_size_2 = policy_2.select_action(state_2)
+        next_state, reward, done, _, var = env_2.step([action_1, action_2], [step_size_1, step_size_2])
+        state_2 = next_state
+        #env.render()
+        #env.close()
+
+        average_cov_rl_2 += np.linalg.det(var[0])+np.linalg.det(var[1])+np.linalg.det(var[2])+np.linalg.det(var[3])
+        #average_cov_rl += np.linalg.det(var[0])+np.linalg.det(var[1])
+        #average_cov_rl += np.linalg.det(var[0])
+        #cov_rl = np.linalg.det(var[0])
+        for index in range(0, len(var)):
+            if(index==0):
+                target_1.append(np.linalg.det(var[0]))
+            elif(index==1):
+                target_2.append(np.linalg.det(var[1]))
+            elif(index==2):
+                target_3.append(np.linalg.det(var[2]))
+            else:
+                target_4.append(np.linalg.det(var[3]))
+        if(done):
+            break
+    average_cov_rl_2 = average_cov_rl_2/i
+    rl2_cov.append(average_cov_rl_2)
+    ratio.append(average_cov_rl_1/average_cov_rl_2)
 
 
 # plot curve
-'''
 plt.cla()
-plt.title("Plot for scenario: sensors=1 and targets=4")
-plt.xlabel("Data(Ratio of Avg. Determinant of covariance matrix(RL/greedy))")
+plt.title("Plot for scenario: sensors=2 and targets=4")
+plt.xlabel("Data(Ratio of Avg. Determinant of covariance matrix(RL_1/RL_2))")
 plt.ylabel("Probability")
 plt.hist(ratio, density=True,  bins=30)
-plt.savefig("/home/arpitdec5/Desktop/robot_target_tracking/ratio_episode_curve_sensors_1_targets_4.png")
+plt.savefig("/home/arpitdec5/Desktop/robot_target_tracking/ratio_episode_curve_sensors_2_targets_4.png")
 plt.cla()
-plt.title("Plot for scenario: sensors=1 and targets=4")
+plt.title("Plot for scenario: sensors=2 and targets=4")
 plt.xlabel("Episodes")
 plt.ylabel("Avg. Determinant of covariance matrix")
-plt.plot(step, greedy_cov, label='Greedy Algo')
-plt.plot(step, rl_cov, label='RL Algo')
+plt.plot(step, rl2_cov, label='RL_2 Algo')
+plt.plot(step, rl1_cov, label='RL_1 Algo')
 plt.legend()
-plt.savefig("/home/arpitdec5/Desktop/robot_target_tracking/det_episode_curve_sensors_1_targets_4.png")
-'''
+plt.savefig("/home/arpitdec5/Desktop/robot_target_tracking/det_episode_curve_sensors_2_targets_4.png")

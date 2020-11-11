@@ -45,10 +45,11 @@ class RobotTargetTrackingEnv(gym.GoalEnv):
         self.convnet = ConvNet()
 
 
-    def env_parametrization(self, num_targets=4, num_sensors=2, target_motion_omegas=None, meas_model='range'):
-        """ 
+    def env_parametrization(self, num_targets=4, num_sensors=2, target_motion_omegas=None, meas_model='range', include_cnn=True):
+        """  
             Function for parametrizing the environment
         """
+        self.include_cnn = include_cnn
         self.x1_list = []
         self.y1_list = []
         self.x2_list = []
@@ -61,15 +62,6 @@ class RobotTargetTrackingEnv(gym.GoalEnv):
         self.num_targets = num_targets
         self.true_targets_radii = torch.rand(self.num_targets)*5.0+2.0
         self.true_targets_pos = (torch.rand(self.num_targets, 2)*self.len_workspace)
-        #self.true_targets_pos[0, 0] = 14
-        #self.true_targets_pos[0, 1] = 8
-        #self.true_targets_pos[1, 0] = 6
-        #self.true_targets_pos[1, 1] = 6
-        #self.true_const_1 = np.random.uniform(low=9, high=19, size=(1,))[0]
-        #self.true_const = 14
-        #self.true_slope_1 = (self.true_targets_pos[0, 1]-self.true_const_1)/self.true_targets_pos[0, 0]
-        #self.true_const_2 = np.random.uniform(low=2, high=5, size=(1,))[0]
-        #self.true_slope_2 = (self.true_targets_pos[1, 1]-self.true_const_2)/self.true_targets_pos[1, 0]
         self.initial_true_targets_pos = self.true_targets_pos.clone()
         self.estimated_targets_mean = self.true_targets_pos.clone()
         self.estimated_targets_var = torch.zeros(self.num_targets, 2, 2)
@@ -86,10 +78,12 @@ class RobotTargetTrackingEnv(gym.GoalEnv):
             pos[:, :, 0] = X; pos[:, :, 1] = Y
             rv = multivariate_normal(self.estimated_targets_mean[index], self.estimated_targets_var[index])
             self.heatmap += rv.pdf(pos)
-        image = F.interpolate(self.heatmap.unsqueeze(0).unsqueeze(0), (256, 256), mode='bilinear', align_corners=True)
-        image = image.float()
-        true_obs = self.convnet(image).squeeze()
-        #true_obs = self.heatmap.flatten()
+        if include_cnn:
+            image = F.interpolate(self.heatmap.unsqueeze(0).unsqueeze(0), (256, 256), mode='bilinear', align_corners=True)
+            image = image.float()
+            true_obs = self.convnet(image).squeeze()
+        else:  
+            true_obs = self.heatmap.flatten()
 
         self.robot_movement_x_1 = []
         self.robot_movement_y_1 = []
@@ -112,10 +106,6 @@ class RobotTargetTrackingEnv(gym.GoalEnv):
                 self.sensors_pos[index, 1] -= (self.sensors_pos[index, 1]-self.len_workspace+1)
             if(self.sensors_pos[index, 1]<=0):
                 self.sensors_pos[index, 1] = (-self.sensors_pos[index, 1]+1)
-        #self.sensors_pos[0, 0] = 18
-        #self.sensors_pos[0, 1] = 14
-        #self.sensors_pos[1, 0] = 18
-        #self.sensors_pos[1, 1] = 12
 
         self.robot_movement_x_1.append(float(self.sensors_pos[0, 0]))
         self.robot_movement_y_1.append(float(self.sensors_pos[0, 1]))
@@ -181,10 +171,12 @@ class RobotTargetTrackingEnv(gym.GoalEnv):
             pos[:, :, 0] = X; pos[:, :, 1] = Y
             rv = multivariate_normal(self.estimated_targets_mean[index], self.estimated_targets_var[index])
             self.heatmap += rv.pdf(pos)
-        image = F.interpolate(self.heatmap.unsqueeze(0).unsqueeze(0), (256, 256), mode='bilinear', align_corners=True)
-        image = image.float()
-        true_obs = self.convnet(image).squeeze()
-        #true_obs = self.heatmap.flatten()
+        if self.include_cnn:
+            image = F.interpolate(self.heatmap.unsqueeze(0).unsqueeze(0), (256, 256), mode='bilinear', align_corners=True)
+            image = image.float()
+            true_obs = self.convnet(image).squeeze()
+        else:
+            true_obs = self.heatmap.flatten()
 
         done = False
         reward = None
@@ -212,15 +204,6 @@ class RobotTargetTrackingEnv(gym.GoalEnv):
         self.time_step = 1
         self.true_targets_radii = torch.rand(self.num_targets)*5.0+2.0
         self.true_targets_pos = (torch.rand(self.num_targets, 2)*self.len_workspace)
-        #self.true_targets_pos[0, 0] = 14
-        #self.true_targets_pos[0, 1] = 8
-        #self.true_targets_pos[1, 0] = 6
-        #self.true_targets_pos[1, 1] = 6
-        #self.true_const_1 = np.random.uniform(low=9, high=19, size=(1,))[0]
-        #self.true_const = 14
-        #self.true_slope_1 = (self.true_targets_pos[0, 1]-self.true_const_1)/self.true_targets_pos[0, 0]
-        #self.true_const_2 = np.random.uniform(low=2, high=5, size=(1,))[0]
-        #self.true_slope_2 = (self.true_targets_pos[1, 1]-self.true_const_2)/self.true_targets_pos[1, 0]
         self.initial_true_targets_pos = self.true_targets_pos.clone()
         self.estimated_targets_mean = self.true_targets_pos.clone()
         self.estimated_targets_var = torch.zeros(self.num_targets, 2, 2)
@@ -248,10 +231,6 @@ class RobotTargetTrackingEnv(gym.GoalEnv):
                 self.sensors_pos[index, 1] -= (self.sensors_pos[index, 1]-self.len_workspace+1)
             if(self.sensors_pos[index, 1]<=0):
                 self.sensors_pos[index, 1] = (-self.sensors_pos[index, 1]+1)  
-        #self.sensors_pos[0, 0] = 18
-        #self.sensors_pos[0, 1] = 14
-        #self.sensors_pos[1, 0] = 18
-        #self.sensors_pos[1, 1] = 12
 
         self.robot_movement_x_1.append(float(self.sensors_pos[0, 0]))
         self.robot_movement_y_1.append(float(self.sensors_pos[0, 1]))
@@ -279,10 +258,12 @@ class RobotTargetTrackingEnv(gym.GoalEnv):
             pos[:, :, 0] = X; pos[:, :, 1] = Y
             rv = multivariate_normal(self.estimated_targets_mean[index], self.estimated_targets_var[index])
             self.heatmap += rv.pdf(pos)
-        image = F.interpolate(self.heatmap.unsqueeze(0).unsqueeze(0), (256, 256), mode='bilinear', align_corners=True)
-        image = image.float()
-        true_obs = self.convnet(image).squeeze()
-        #true_obs = self.heatmap.flatten()
+        if self.include_cnn:
+            image = F.interpolate(self.heatmap.unsqueeze(0).unsqueeze(0), (256, 256), mode='bilinear', align_corners=True)
+            image = image.float()
+            true_obs = self.convnet(image).squeeze()
+        else:
+            true_obs = self.heatmap.flatten()
 
         self.state = torch.cat((self.sensors_pos[0], self.sensors_pos[1], torch.tensor(true_obs).float()))
         self.observation_space = spaces.Box(-np.inf, np.inf, shape=self.state.shape, dtype='float32')
@@ -419,13 +400,6 @@ class RobotTargetTrackingEnv(gym.GoalEnv):
         """
         for index in range(0, self.num_targets):
             self.true_targets_pos[index] = torch.tensor([self.true_targets_radii[index]*np.cos((self.time_step-1)/float(self.target_motion_omegas[index]))+float(self.initial_true_targets_pos[index, 0])-self.true_targets_radii[index], self.true_targets_radii[index]*np.sin((self.time_step-1)/float(self.target_motion_omegas[index]))+float(self.initial_true_targets_pos[index, 1])]) 
-        '''
-        for index in range(0, self.num_targets):
-            if index == 0:
-                self.true_targets_pos[index] = torch.tensor([self.true_targets_pos[index, 0]-0.1, (self.true_slope_1*(self.true_targets_pos[index, 0]-0.1))+self.true_const_1])
-            if index == 1:
-                self.true_targets_pos[index] = torch.tensor([self.true_targets_pos[index, 0]-0.1, (self.true_slope_2*(self.true_targets_pos[index, 0]-0.1))+self.true_const_2])
-        '''
 
 
     def update_estimated_targets_pos(self):
