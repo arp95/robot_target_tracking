@@ -57,8 +57,9 @@ ratio = []
 for index in range(0, 500):
     # init environment 1
     state, sensors, targets, radii, omegas = env_1.reset()
-    state_2, sensors_2, targets_2, radii_2, omegas_2 = env_2.reset()
+    state_2, sensors_2, targets_2, radii_2, omegas_2 = env_2.set_env(sensors, targets, radii, omegas)
     step.append(index+1)
+    print(index)
 
     ############################ Greedy Algo #######################################
     '''

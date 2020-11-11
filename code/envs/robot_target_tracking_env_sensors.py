@@ -269,6 +269,73 @@ class RobotTargetTrackingEnv(gym.GoalEnv):
         self.observation_space = spaces.Box(-np.inf, np.inf, shape=self.state.shape, dtype='float32')
         return self.state, self.sensors_pos, self.estimated_targets_mean, self.true_targets_radii, self.target_motion_omegas
 
+
+    def set_env(self, sensors_pos, estimated_targets_mean, true_targets_radii, target_motion_omegas):
+        self.x1_list = []
+        self.y1_list = []
+        self.x2_list = []
+        self.y2_list = []
+        self.x3_list = []
+        self.y3_list = []
+        self.x4_list = []
+        self.y4_list = []
+        self.time_step = 1
+        self.true_targets_radii = true_targets_radii
+        self.true_targets_pos = estimated_targets_mean
+        self.initial_true_targets_pos = self.true_targets_pos.clone()
+        self.estimated_targets_mean = self.true_targets_pos.clone()
+        self.estimated_targets_var = torch.zeros(self.num_targets, 2, 2)
+        for index in range(0, self.num_targets):
+            self.estimated_targets_var[index] = torch.tensor([[1, 0], [0, 1]])
+        self.target_motion_omegas = target_motion_omegas
+        
+        self.robot_movement_x_1 = []
+        self.robot_movement_y_1 = []
+        self.robot_movement_x_2 = []
+        self.robot_movement_y_2 = []
+        self.robot_movement_x_3 = []
+        self.robot_movement_y_3 = []
+        self.robot_movement_x_4 = []
+        self.robot_movement_y_4 = []
+        self.sensors_pos = sensors_pos
+
+        self.robot_movement_x_1.append(float(self.sensors_pos[0, 0]))
+        self.robot_movement_y_1.append(float(self.sensors_pos[0, 1]))
+        self.robot_movement_x_2.append(float(self.sensors_pos[1, 0]))
+        self.robot_movement_y_2.append(float(self.sensors_pos[1, 1]))
+        #self.robot_movement_x_3.append(float(self.sensors_pos[2, 0]))
+        #self.robot_movement_y_3.append(float(self.sensors_pos[2, 1]))
+        #self.robot_movement_x_4.append(float(self.sensors_pos[3, 0]))
+        #self.robot_movement_y_4.append(float(self.sensors_pos[3, 1]))
+        self.x1_list.append(float(self.true_targets_pos[0, 0]))
+        self.y1_list.append(float(self.true_targets_pos[0, 1]))
+        self.x2_list.append(float(self.true_targets_pos[1, 0]))
+        self.y2_list.append(float(self.true_targets_pos[1, 1]))
+        self.x3_list.append(float(self.true_targets_pos[2, 0]))
+        self.y3_list.append(float(self.true_targets_pos[2, 1]))
+        self.x4_list.append(float(self.true_targets_pos[3, 0]))
+        self.y4_list.append(float(self.true_targets_pos[3, 1]))
+
+        self.heatmap = torch.zeros(self.len_workspace, self.len_workspace)
+        for index in range(0, self.num_targets):
+            x = np.linspace(0, self.len_workspace, self.len_workspace)
+            y = np.linspace(0, self.len_workspace, self.len_workspace)
+            X, Y = np.meshgrid(x, y)
+            pos = np.empty(X.shape + (2,))
+            pos[:, :, 0] = X; pos[:, :, 1] = Y
+            rv = multivariate_normal(self.estimated_targets_mean[index], self.estimated_targets_var[index])
+            self.heatmap += rv.pdf(pos)
+        if self.include_cnn:
+            image = F.interpolate(self.heatmap.unsqueeze(0).unsqueeze(0), (256, 256), mode='bilinear', align_corners=True)
+            image = image.float()
+            true_obs = self.convnet(image).squeeze()
+        else:
+            true_obs = self.heatmap.flatten()
+
+        self.state = torch.cat((self.sensors_pos[0], self.sensors_pos[1], torch.tensor(true_obs).float()))
+        self.observation_space = spaces.Box(-np.inf, np.inf, shape=self.state.shape, dtype='float32')
+        return self.state, self.sensors_pos, self.estimated_targets_mean, self.true_targets_radii, self.target_motion_omegas
+
     
     def close(self):
         """ 

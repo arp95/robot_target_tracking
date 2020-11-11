@@ -26,7 +26,7 @@ class ConvNet(nn.Module):
         super(ConvNet, self).__init__()
 
         self.act_fn = F.relu
-        self.model_ft = torchvision.models.resnet34(pretrained=pretrained)
+        self.model_ft = torchvision.models.resnet18(pretrained=pretrained)
         self.model_ft.conv1 = nn.Conv2d(1, 64, kernel_size=7, stride=2, padding=3, bias=False)
         num_ftrs = self.model_ft.fc.out_features
 
