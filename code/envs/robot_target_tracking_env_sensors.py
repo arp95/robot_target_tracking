@@ -45,7 +45,7 @@ class RobotTargetTrackingEnv(gym.GoalEnv):
         self.convnet = ConvNet()
 
 
-    def env_parametrization(self, num_targets=4, num_sensors=2, target_motion_omegas=None, meas_model='range', include_cnn=True):
+    def env_parametrization(self, num_targets=2, num_sensors=2, target_motion_omegas=None, meas_model='range', include_cnn=True):
         """  
             Function for parametrizing the environment
         """
@@ -119,10 +119,10 @@ class RobotTargetTrackingEnv(gym.GoalEnv):
         self.y1_list.append(float(self.true_targets_pos[0, 1]))
         self.x2_list.append(float(self.true_targets_pos[1, 0]))
         self.y2_list.append(float(self.true_targets_pos[1, 1]))
-        self.x3_list.append(float(self.true_targets_pos[2, 0]))
-        self.y3_list.append(float(self.true_targets_pos[2, 1]))
-        self.x4_list.append(float(self.true_targets_pos[3, 0]))
-        self.y4_list.append(float(self.true_targets_pos[3, 1]))
+        #self.x3_list.append(float(self.true_targets_pos[2, 0]))
+        #self.y3_list.append(float(self.true_targets_pos[2, 1]))
+        #self.x4_list.append(float(self.true_targets_pos[3, 0]))
+        #self.y4_list.append(float(self.true_targets_pos[3, 1]))
 
         self.meas_model = meas_model
         if self.meas_model == 'bearing':
@@ -157,10 +157,10 @@ class RobotTargetTrackingEnv(gym.GoalEnv):
         self.y1_list.append(float(self.true_targets_pos[0, 1]))
         self.x2_list.append(float(self.true_targets_pos[1, 0]))
         self.y2_list.append(float(self.true_targets_pos[1, 1]))
-        self.x3_list.append(float(self.true_targets_pos[2, 0]))
-        self.y3_list.append(float(self.true_targets_pos[2, 1]))
-        self.x4_list.append(float(self.true_targets_pos[3, 0]))
-        self.y4_list.append(float(self.true_targets_pos[3, 1]))
+        #self.x3_list.append(float(self.true_targets_pos[2, 0]))
+        #self.y3_list.append(float(self.true_targets_pos[2, 1]))
+        #self.x4_list.append(float(self.true_targets_pos[3, 0]))
+        #self.y4_list.append(float(self.true_targets_pos[3, 1]))
 
         self.heatmap = torch.zeros(self.len_workspace, self.len_workspace)
         for index in range(0, self.num_targets):
@@ -244,10 +244,10 @@ class RobotTargetTrackingEnv(gym.GoalEnv):
         self.y1_list.append(float(self.true_targets_pos[0, 1]))
         self.x2_list.append(float(self.true_targets_pos[1, 0]))
         self.y2_list.append(float(self.true_targets_pos[1, 1]))
-        self.x3_list.append(float(self.true_targets_pos[2, 0]))
-        self.y3_list.append(float(self.true_targets_pos[2, 1]))
-        self.x4_list.append(float(self.true_targets_pos[3, 0]))
-        self.y4_list.append(float(self.true_targets_pos[3, 1]))
+        #self.x3_list.append(float(self.true_targets_pos[2, 0]))
+        #self.y3_list.append(float(self.true_targets_pos[2, 1]))
+        #self.x4_list.append(float(self.true_targets_pos[3, 0]))
+        #self.y4_list.append(float(self.true_targets_pos[3, 1]))
 
         self.heatmap = torch.zeros(self.len_workspace, self.len_workspace)
         for index in range(0, self.num_targets):
@@ -311,10 +311,10 @@ class RobotTargetTrackingEnv(gym.GoalEnv):
         self.y1_list.append(float(self.true_targets_pos[0, 1]))
         self.x2_list.append(float(self.true_targets_pos[1, 0]))
         self.y2_list.append(float(self.true_targets_pos[1, 1]))
-        self.x3_list.append(float(self.true_targets_pos[2, 0]))
-        self.y3_list.append(float(self.true_targets_pos[2, 1]))
-        self.x4_list.append(float(self.true_targets_pos[3, 0]))
-        self.y4_list.append(float(self.true_targets_pos[3, 1]))
+        #self.x3_list.append(float(self.true_targets_pos[2, 0]))
+        #self.y3_list.append(float(self.true_targets_pos[2, 1]))
+        #self.x4_list.append(float(self.true_targets_pos[3, 0]))
+        #self.y4_list.append(float(self.true_targets_pos[3, 1]))
 
         self.heatmap = torch.zeros(self.len_workspace, self.len_workspace)
         for index in range(0, self.num_targets):
@@ -371,10 +371,10 @@ class RobotTargetTrackingEnv(gym.GoalEnv):
         plt.plot(self.x1_list[len(self.x1_list)-1], self.y1_list[len(self.y1_list)-1], 'o', c='b', marker='*')
         plt.plot(self.x2_list, self.y2_list, 'b--')
         plt.plot(self.x2_list[len(self.x2_list)-1], self.y2_list[len(self.y2_list)-1], 'o', c='b', marker='*')
-        plt.plot(self.x3_list, self.y3_list, 'b--')
-        plt.plot(self.x3_list[len(self.x3_list)-1], self.y3_list[len(self.y3_list)-1], 'o', c='b', marker='*')
-        plt.plot(self.x4_list, self.y4_list, 'b--')
-        plt.plot(self.x4_list[len(self.x4_list)-1], self.y4_list[len(self.y4_list)-1], 'o', c='b', marker='*')
+        #plt.plot(self.x3_list, self.y3_list, 'b--')
+        #plt.plot(self.x3_list[len(self.x3_list)-1], self.y3_list[len(self.y3_list)-1], 'o', c='b', marker='*')
+        #plt.plot(self.x4_list, self.y4_list, 'b--')
+        #plt.plot(self.x4_list[len(self.x4_list)-1], self.y4_list[len(self.y4_list)-1], 'o', c='b', marker='*')
         if(len(self.robot_movement_x_1)<8):
             plt.plot(self.robot_movement_x_1, self.robot_movement_y_1, 'r--')
         else:
