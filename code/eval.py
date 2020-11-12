@@ -41,7 +41,7 @@ state_dim = env_1.observation_space.shape[0]
 action_dim = env_1.action_space.shape[0]
 max_action = float(env_1.action_space.high[0])
 policy_1 = TD3(0.0005, state_dim, 4, max_action)
-policy_1.load_actor("/home/arpitdec5/Desktop/robot_target_tracking/", "sample_model_sensors_2_targets_4")
+policy_1.load_actor("/home/arpitdec5/Desktop/robot_target_tracking/", "sample_1_model_sensors_2_targets_4")
 state_dim = env_2.observation_space.shape[0]
 action_dim = env_2.action_space.shape[0]
 max_action = float(env_2.action_space.high[0])
@@ -54,7 +54,7 @@ rl1_cov = []
 rl2_cov = []
 step = []
 ratio = []
-for index in range(0, 500):
+for index in range(0, 1):
     # init environment 1
     state, sensors, targets, radii, omegas = env_1.reset()
     state_2, sensors_2, targets_2, radii_2, omegas_2 = env_2.set_env(sensors, targets, radii, omegas)
@@ -178,8 +178,8 @@ for index in range(0, 500):
         action_1, step_size_1, action_2, step_size_2 = policy_1.select_action(state)
         next_state, reward, done, _, var = env_1.step([action_1, action_2], [step_size_1, step_size_2])
         state = next_state
-        #env.render()
-        #env.close()
+        env_1.render()
+        env_1.close()
 
         average_cov_rl_1 += np.linalg.det(var[0])+np.linalg.det(var[1])+np.linalg.det(var[2])+np.linalg.det(var[3])
         #average_cov_rl += np.linalg.det(var[0])+np.linalg.det(var[1])
@@ -196,9 +196,10 @@ for index in range(0, 500):
                 target_4.append(np.linalg.det(var[3]))
         if(done):
             break
-    average_cov_rl_1 = average_cov_rl_1/i
-    rl1_cov.append(average_cov_rl_1)
+    #average_cov_rl_1 = average_cov_rl_1/i
+    #rl1_cov.append(average_cov_rl_1)
 
+    '''
     ############################ RL_2 Algo #######################################
     average_cov_rl_2 = 0.0
     cov_rl = 0.0
@@ -233,15 +234,17 @@ for index in range(0, 500):
     average_cov_rl_2 = average_cov_rl_2/i
     rl2_cov.append(average_cov_rl_2)
     ratio.append(average_cov_rl_1/average_cov_rl_2)
+    '''
 
 
+'''
 # plot curve
 plt.cla()
 plt.title("Plot for scenario: sensors=2 and targets=4")
 plt.xlabel("Data(Ratio of Avg. Determinant of covariance matrix(RL_1/RL_2))")
 plt.ylabel("Probability")
 plt.hist(ratio, density=True,  bins=30)
-plt.savefig("/home/arpitdec5/Desktop/robot_target_tracking/ratio_episode_curve_sensors_2_targets_4.png")
+plt.savefig("/home/arpitdec5/Desktop/robot_target_tracking/ratio_episode_curve_sensors_2_targets_4_1.png")
 plt.cla()
 plt.title("Plot for scenario: sensors=2 and targets=4")
 plt.xlabel("Episodes")
@@ -249,4 +252,5 @@ plt.ylabel("Avg. Determinant of covariance matrix")
 plt.plot(step, rl2_cov, label='RL_2 Algo')
 plt.plot(step, rl1_cov, label='RL_1 Algo')
 plt.legend()
-plt.savefig("/home/arpitdec5/Desktop/robot_target_tracking/det_episode_curve_sensors_2_targets_4.png")
+plt.savefig("/home/arpitdec5/Desktop/robot_target_tracking/det_episode_curve_sensors_2_targets_4_1.png")
+'''
