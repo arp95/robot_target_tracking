@@ -182,7 +182,7 @@ for index in range(0, 1):
         #env_1.close()
 
         #average_cov_rl_1 += np.linalg.det(var[0])+np.linalg.det(var[1])+np.linalg.det(var[2])+np.linalg.det(var[3])
-        average_cov_rl += np.linalg.det(var[0])+np.linalg.det(var[1])
+        average_cov_rl_1 += np.linalg.det(var[0])+np.linalg.det(var[1])
         #average_cov_rl += np.linalg.det(var[0])
         #cov_rl = np.linalg.det(var[0])
         for index in range(0, len(var)):
@@ -216,7 +216,7 @@ for index in range(0, 1):
         #env_2.close()
 
         #average_cov_rl_2 += np.linalg.det(var[0])+np.linalg.det(var[1])+np.linalg.det(var[2])+np.linalg.det(var[3])
-        average_cov_rl += np.linalg.det(var[0])+np.linalg.det(var[1])
+        average_cov_rl_2 += np.linalg.det(var[0])+np.linalg.det(var[1])
         #average_cov_rl += np.linalg.det(var[0])
         #cov_rl = np.linalg.det(var[0])
         for index in range(0, len(var)):
