@@ -10,6 +10,7 @@ Modifications: Modified the existing environment with number of robots > 1 and t
 import os
 import copy
 import numpy as np
+import time
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -139,6 +140,7 @@ class RobotTargetTrackingEnv(gym.GoalEnv):
         """ 
             Function to update the environment
         """
+        start = time.time()
         self._set_action(action, step_size)
 
         self.time_step = self.time_step + 1
@@ -186,6 +188,7 @@ class RobotTargetTrackingEnv(gym.GoalEnv):
                 done = True
 
         self.state = torch.cat((self.sensors_pos[0], self.sensors_pos[1], torch.tensor(true_obs).float()))
+        print(time.time() - start)
         return self.state, reward, done, None, self.estimated_targets_var
 
     
