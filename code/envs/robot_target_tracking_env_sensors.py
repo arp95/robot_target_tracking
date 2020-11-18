@@ -188,7 +188,7 @@ class RobotTargetTrackingEnv(gym.GoalEnv):
                 done = True
 
         self.state = torch.cat((self.sensors_pos[0], self.sensors_pos[1], torch.tensor(true_obs).float()))
-        print(time.time() - start)
+        end = time.time() - start
         return self.state, reward, done, None, self.estimated_targets_var
 
     
